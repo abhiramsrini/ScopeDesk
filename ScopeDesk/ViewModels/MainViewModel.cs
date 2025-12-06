@@ -23,6 +23,8 @@ namespace ScopeDesk.ViewModels
         private readonly string _logPath;
 
         private string _ipAddress = "192.168.0.100";
+        private string _scpiCommand = string.Empty;
+        private string _scpiResponse = string.Empty;
         private bool _isConnected;
         private string _statusMessage = "Disconnected";
         private string _footerMessage = string.Empty;
@@ -52,6 +54,7 @@ namespace ScopeDesk.ViewModels
             ConnectCommand = new AsyncRelayCommand(ConnectAsync, () => !IsConnected);
             DisconnectCommand = new AsyncRelayCommand(DisconnectAsync, () => IsConnected);
             FetchMeasurementsCommand = new AsyncRelayCommand(FetchMeasurementsAsync, () => IsConnected);
+            SendScpiCommand = new AsyncRelayCommand(SendScpiCommandAsync, () => IsConnected && !string.IsNullOrWhiteSpace(ScpiCommand));
             OpenLogsCommand = new RelayCommand(OpenLogsFolder);
         }
 
@@ -65,6 +68,24 @@ namespace ScopeDesk.ViewModels
             set => SetProperty(ref _ipAddress, value);
         }
 
+        public string ScpiCommand
+        {
+            get => _scpiCommand;
+            set
+            {
+                if (SetProperty(ref _scpiCommand, value))
+                {
+                    SendScpiCommand.NotifyCanExecuteChanged();
+                }
+            }
+        }
+
+        public string ScpiResponse
+        {
+            get => _scpiResponse;
+            set => SetProperty(ref _scpiResponse, value);
+        }
+
         public bool IsConnected
         {
             get => _isConnected;
@@ -76,6 +97,7 @@ namespace ScopeDesk.ViewModels
                     ConnectCommand.NotifyCanExecuteChanged();
                     DisconnectCommand.NotifyCanExecuteChanged();
                     FetchMeasurementsCommand.NotifyCanExecuteChanged();
+                    SendScpiCommand.NotifyCanExecuteChanged();
                 }
             }
         }
@@ -97,6 +119,7 @@ namespace ScopeDesk.ViewModels
         public IAsyncRelayCommand ConnectCommand { get; }
         public IAsyncRelayCommand DisconnectCommand { get; }
         public IAsyncRelayCommand FetchMeasurementsCommand { get; }
+        public IAsyncRelayCommand SendScpiCommand { get; }
         public IRelayCommand OpenLogsCommand { get; }
 
         private IEnumerable<SelectableChannelOption> BuildChannelOptions()
@@ -150,6 +173,23 @@ namespace ScopeDesk.ViewModels
             await _connectionService.DisconnectAsync();
             IsConnected = false;
             StatusMessage = "Disconnected";
+        }
+
+        private async Task SendScpiCommandAsync()
+        {
+            try
+            {
+                StatusMessage = "Sending SCPI command...";
+                var response = await _connectionService.SendScpiCommandAsync(ScpiCommand);
+                ScpiResponse = response;
+                StatusMessage = "SCPI command sent.";
+            }
+            catch (Exception ex)
+            {
+                ScpiResponse = $"Error: {ex.Message}";
+                StatusMessage = "Failed to send SCPI command.";
+                _logger.LogError(ex, "Error sending SCPI command.");
+            }
         }
 
         private async Task FetchMeasurementsAsync()

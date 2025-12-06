@@ -3,6 +3,7 @@ using System;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Text;
 
 namespace ScopeDesk.Services
 {
@@ -101,5 +102,38 @@ namespace ScopeDesk.Services
         }
 
         public dynamic? GetScope() => _scopeCom;
+
+        public async Task<string> SendScpiCommandAsync(string command, CancellationToken cancellationToken = default)
+        {
+            if (!IsConnected)
+            {
+                throw new InvalidOperationException("Oscilloscope is not connected.");
+            }
+
+            return await Task.Run(() =>
+            {
+                try
+                {
+                    if (_scopeCom == null)
+                    {
+                        _logger.LogWarning("Scope object not available; returning stub response.");
+                        return "Scope object not available.";
+                    }
+
+                    // Write command and read response
+                    _scopeCom.WriteString(command, 1);
+                    _scopeCom.WriteString("CHDR OFF", 1); // ensure clean response format if applicable
+                    _scopeCom.WriteString("?", 1);
+
+                    var response = _scopeCom.ReadString(5000);
+                    return response is string s ? s.Trim() : response?.ToString() ?? "No response.";
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to send SCPI command: {Command}", command);
+                    return $"Error: {ex.Message}";
+                }
+            }, cancellationToken);
+        }
     }
 }

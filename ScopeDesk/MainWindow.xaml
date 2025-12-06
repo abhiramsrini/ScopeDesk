@@ -51,63 +51,97 @@
 
                 <Border Grid.Row="0" Grid.ColumnSpan="2" Style="{StaticResource CardBorder}" Padding="20">
                     <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="3*" />
+                            <ColumnDefinition Width="2*" />
+                        </Grid.ColumnDefinitions>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="320" />
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
+                        <!-- Connection section -->
+                        <StackPanel Grid.Row="0" Grid.Column="0" Grid.RowSpan="2" Orientation="Vertical">
+                            <TextBlock Text="Oscilloscope IP" Style="{StaticResource LabelText}" />
+                            <Grid Margin="0,6,0,0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="260" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
 
-                        <TextBlock Grid.Row="0" Grid.Column="0"
-                                   Text="Oscilloscope IP"
-                                   Style="{StaticResource LabelText}"
-                                   VerticalAlignment="Center" />
-                        <TextBox Grid.Row="0" Grid.Column="1"
-                                 Text="{Binding IpAddress, UpdateSourceTrigger=PropertyChanged}" 
-                                 Style="{StaticResource InputTextBox}"
-                                 Margin="10,0,12,0"
-                                 VerticalAlignment="Center" />
+                                <TextBox Grid.Column="0"
+                                         Text="{Binding IpAddress, UpdateSourceTrigger=PropertyChanged}" 
+                                         Style="{StaticResource InputTextBox}"
+                                         Margin="0,0,12,0"
+                                         VerticalAlignment="Center" />
 
-                        <Button Grid.Row="0" Grid.Column="2"
-                                Content="Connect"
-                                Style="{StaticResource PrimaryButton}"
-                                Command="{Binding ConnectCommand}"
-                                IsEnabled="{Binding IsConnected, Converter={StaticResource InverseBoolConverter}}" />
+                                <Button Grid.Column="1"
+                                        Content="Connect"
+                                        Style="{StaticResource PrimaryButton}"
+                                        Command="{Binding ConnectCommand}"
+                                        IsEnabled="{Binding IsConnected, Converter={StaticResource InverseBoolConverter}}" />
 
-                        <Button Grid.Row="0" Grid.Column="3"
-                                Content="Disconnect"
-                                Style="{StaticResource SecondaryButton}"
-                                Command="{Binding DisconnectCommand}"
-                                IsEnabled="{Binding IsConnected}"
-                                Margin="10,0,0,0" />
+                                <Button Grid.Column="2"
+                                        Content="Disconnect"
+                                        Style="{StaticResource SecondaryButton}"
+                                        Command="{Binding DisconnectCommand}"
+                                        IsEnabled="{Binding IsConnected}" />
+                            </Grid>
 
-                        <StackPanel Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="4" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,10,0,0">
-                            <TextBlock Text="Status:" Style="{StaticResource LabelText}" />
-                            <Border Margin="6,0,0,0"
-                                    Padding="10,4"
-                                    CornerRadius="12"
-                                    Background="#22264B"
-                                    BorderBrush="#2F3158"
-                                    BorderThickness="1">
-                                <TextBlock Text="{Binding ConnectionStatusText}"
-                                           FontWeight="SemiBold">
-                                    <TextBlock.Style>
-                                        <Style TargetType="TextBlock">
-                                            <Setter Property="Foreground" Value="{DynamicResource TertiaryBrush}" />
-                                            <Style.Triggers>
-                                                <DataTrigger Binding="{Binding IsConnected}" Value="True">
-                                                    <Setter Property="Foreground" Value="#7CFFA8" />
-                                                </DataTrigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </TextBlock.Style>
-                                </TextBlock>
-                            </Border>
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,12,0,0">
+                                <TextBlock Text="Status:" Style="{StaticResource LabelText}" />
+                                <Border Margin="6,0,0,0"
+                                        Padding="10,4"
+                                        CornerRadius="12"
+                                        Background="#22264B"
+                                        BorderBrush="#2F3158"
+                                        BorderThickness="1">
+                                    <TextBlock Text="{Binding ConnectionStatusText}"
+                                               FontWeight="SemiBold">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Foreground" Value="{DynamicResource TertiaryBrush}" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsConnected}" Value="True">
+                                                        <Setter Property="Foreground" Value="#7CFFA8" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
+                                </Border>
+                            </StackPanel>
+                        </StackPanel>
+
+                        <!-- SCPI section -->
+                        <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Vertical" Margin="16,0,0,0">
+                            <TextBlock Text="SCPI Command" Style="{StaticResource LabelText}" />
+                            <Grid Margin="0,6,0,0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <TextBox Grid.Column="0"
+                                         Text="{Binding ScpiCommand, UpdateSourceTrigger=PropertyChanged}"
+                                         Style="{StaticResource InputTextBox}"
+                                         Margin="0,0,12,0"
+                                         VerticalAlignment="Center" />
+                                <Button Grid.Column="1"
+                                        Content="Send SCPI"
+                                        Style="{StaticResource PrimaryButton}"
+                                        Command="{Binding SendScpiCommand}" />
+                            </Grid>
+
+                            <TextBlock Text="Response" Style="{StaticResource LabelText}" Margin="0,10,0,4" />
+                            <TextBox Text="{Binding ScpiResponse}"
+                                     Style="{StaticResource InputTextBox}"
+                                     AcceptsReturn="True"
+                                     TextWrapping="Wrap"
+                                     VerticalScrollBarVisibility="Auto"
+                                     Height="90"
+                                     IsReadOnly="True"
+                                     Background="#151734"
+                                     BorderBrush="#2F3158" />
                         </StackPanel>
                     </Grid>
                 </Border>
