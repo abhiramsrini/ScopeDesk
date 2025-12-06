@@ -105,10 +105,9 @@
         <Setter Property="GridLinesVisibility" Value="None" />
         <Setter Property="RowHeaderWidth" Value="0" />
         <Setter Property="Margin" Value="0,10,0,0" />
-        <Setter Property="Background" Value="#141531" />
+        <Setter Property="Background" Value="#14142F" />
         <Setter Property="BorderBrush" Value="#2F3158" />
         <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="AlternatingRowBackground" Value="#191B3A" />
         <Setter Property="HorizontalGridLinesBrush" Value="#2F3158" />
         <Setter Property="VerticalGridLinesBrush" Value="#2F3158" />
         <Setter Property="CellStyle">
@@ -116,16 +115,16 @@
                 <Style TargetType="DataGridCell">
                     <Setter Property="Padding" Value="10,6" />
                     <Setter Property="BorderThickness" Value="0" />
-                    <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}" />
+                    <Setter Property="Foreground" Value="#F5F7FF" />
                     <Setter Property="Background" Value="Transparent" />
                     <Setter Property="SnapsToDevicePixels" Value="True" />
                     <Style.Triggers>
                         <Trigger Property="IsSelected" Value="True">
-                            <Setter Property="Background" Value="#2C2F64" />
-                            <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}" />
+                            <Setter Property="Background" Value="#2A2E63" />
+                            <Setter Property="Foreground" Value="#FFFFFF" />
                         </Trigger>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter Property="Background" Value="#222552" />
+                            <Setter Property="Background" Value="#1F224A" />
                         </Trigger>
                     </Style.Triggers>
                 </Style>
