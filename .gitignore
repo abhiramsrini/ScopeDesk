@@ -1,0 +1,20 @@
+# Build artifacts
+bin/
+obj/
+
+# User-specific files
+*.user
+*.userosscache
+*.suo
+*.userprefs
+
+# IDE
+.vs/
+.vscode/
+
+# OS
+*.DS_Store
+
+# Logs
+*.log
+ScopeDesk/logs/
