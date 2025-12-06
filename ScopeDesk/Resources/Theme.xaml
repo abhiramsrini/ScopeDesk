@@ -102,24 +102,43 @@
     <Style TargetType="DataGrid">
         <Setter Property="RowHeight" Value="34" />
         <Setter Property="ColumnHeaderHeight" Value="36" />
-        <Setter Property="GridLinesVisibility" Value="Vertical" />
+        <Setter Property="GridLinesVisibility" Value="None" />
         <Setter Property="RowHeaderWidth" Value="0" />
-        <Setter Property="Margin" Value="0,8,0,0" />
+        <Setter Property="Margin" Value="0,10,0,0" />
+        <Setter Property="Background" Value="#141531" />
+        <Setter Property="BorderBrush" Value="#2F3158" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="AlternatingRowBackground" Value="#191B3A" />
+        <Setter Property="HorizontalGridLinesBrush" Value="#2F3158" />
+        <Setter Property="VerticalGridLinesBrush" Value="#2F3158" />
         <Setter Property="CellStyle">
             <Setter.Value>
                 <Style TargetType="DataGridCell">
-                    <Setter Property="Padding" Value="8,4" />
+                    <Setter Property="Padding" Value="10,6" />
                     <Setter Property="BorderThickness" Value="0" />
+                    <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}" />
+                    <Setter Property="Background" Value="Transparent" />
+                    <Setter Property="SnapsToDevicePixels" Value="True" />
+                    <Style.Triggers>
+                        <Trigger Property="IsSelected" Value="True">
+                            <Setter Property="Background" Value="#2C2F64" />
+                            <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}" />
+                        </Trigger>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="Background" Value="#222552" />
+                        </Trigger>
+                    </Style.Triggers>
                 </Style>
             </Setter.Value>
         </Setter>
         <Setter Property="ColumnHeaderStyle">
             <Setter.Value>
                 <Style TargetType="DataGridColumnHeader">
-                    <Setter Property="Padding" Value="6,4" />
+                    <Setter Property="Padding" Value="8,6" />
                     <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}" />
                     <Setter Property="Background" Value="#1F2145" />
-                    <Setter Property="BorderBrush" Value="{StaticResource SecondaryBrush}" />
+                    <Setter Property="BorderBrush" Value="#2F3158" />
+                    <Setter Property="BorderThickness" Value="0,0,0,1" />
                 </Style>
             </Setter.Value>
         </Setter>
