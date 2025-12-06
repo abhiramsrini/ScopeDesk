@@ -13,18 +13,25 @@
         </Grid.RowDefinitions>
 
         <Border Grid.Row="0" Background="{DynamicResource PrimaryBrush}" Padding="20,0">
-            <DockPanel>
-                <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" VerticalAlignment="Center">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
                     <Rectangle Width="32" Height="32" Fill="{DynamicResource AccentBrush}" RadiusX="6" RadiusY="6" />
                     <TextBlock Text="ScopeDesk" FontSize="22" FontWeight="Bold" Foreground="White" Margin="12,0,0,0" />
                 </StackPanel>
-                <TextBlock DockPanel.Dock="Right"
+                <TextBlock Grid.Column="1"
+                           HorizontalAlignment="Right"
                            VerticalAlignment="Center"
                            Foreground="White"
                            FontWeight="SemiBold"
                            Text="{Binding StatusMessage}"
-                           TextTrimming="CharacterEllipsis" />
-            </DockPanel>
+                           TextTrimming="CharacterEllipsis"
+                           Margin="10,0,0,0" />
+            </Grid>
         </Border>
 
         <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
@@ -67,20 +74,28 @@
                                         IsEnabled="{Binding IsConnected}" />
                             </StackPanel>
 
-                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,4,0,0">
                                 <TextBlock Text="Status:" Style="{StaticResource LabelText}" />
-                                <TextBlock Text="{Binding ConnectionStatusText}" FontWeight="SemiBold">
-                                    <TextBlock.Style>
-                                        <Style TargetType="TextBlock">
-                                            <Setter Property="Foreground" Value="{DynamicResource TertiaryBrush}" />
-                                            <Style.Triggers>
-                                                <DataTrigger Binding="{Binding IsConnected}" Value="True">
-                                                    <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
-                                                </DataTrigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </TextBlock.Style>
-                                </TextBlock>
+                                <Border Margin="6,0,0,0"
+                                        Padding="10,4"
+                                        CornerRadius="12"
+                                        Background="#22264B"
+                                        BorderBrush="#2F3158"
+                                        BorderThickness="1">
+                                    <TextBlock Text="{Binding ConnectionStatusText}"
+                                               FontWeight="SemiBold">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Foreground" Value="{DynamicResource TertiaryBrush}" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsConnected}" Value="True">
+                                                        <Setter Property="Foreground" Value="#7CFFA8" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
+                                </Border>
                             </StackPanel>
                         </StackPanel>
                     </Grid>
