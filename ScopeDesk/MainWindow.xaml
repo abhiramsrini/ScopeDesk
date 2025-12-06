@@ -172,7 +172,14 @@
         </ScrollViewer>
 
         <Border Grid.Row="2" Background="{DynamicResource PrimaryBrush}" Padding="12,6">
-            <TextBlock Text="{Binding FooterMessage}" Foreground="White" />
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <TextBlock Text="Powered by " Foreground="White" />
+                <TextBlock>
+                    <Hyperlink NavigateUri="https://www.primeasure.com" RequestNavigate="Hyperlink_RequestNavigate" Foreground="White">
+                        www.primeasure.com
+                    </Hyperlink>
+                </TextBlock>
+            </StackPanel>
         </Border>
     </Grid>
 </Window>
