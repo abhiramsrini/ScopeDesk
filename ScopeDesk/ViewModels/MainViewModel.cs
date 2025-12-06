@@ -41,16 +41,9 @@ namespace ScopeDesk.ViewModels
             _logPath = Environment.ExpandEnvironmentVariables(_configuration["Logging:File:Path"] ?? "%LocalAppData%/ScopeDesk/logs/scope.log");
 
             IpAddress = _configuration["Connection:DefaultIp"] ?? _ipAddress;
-            ChannelOptions = new ObservableCollection<ChannelOption>(BuildChannelOptions());
-            SelectedChannel = ChannelOptions.FirstOrDefault();
+            ChannelOptions = new ObservableCollection<SelectableChannelOption>(BuildChannelOptions());
 
             MeasurementOptions = new ObservableCollection<SelectableMeasurementOption>(BuildMeasurementOptions());
-            WireMeasurementSelection();
-            var allMeasurement = MeasurementOptions.FirstOrDefault(o => o.IsAll);
-            if (allMeasurement != null)
-            {
-                allMeasurement.IsSelected = true;
-            }
 
             Results = new ObservableCollection<MeasurementResult>();
 
@@ -62,16 +55,9 @@ namespace ScopeDesk.ViewModels
             OpenLogsCommand = new RelayCommand(OpenLogsFolder);
         }
 
-        public ObservableCollection<ChannelOption> ChannelOptions { get; }
+        public ObservableCollection<SelectableChannelOption> ChannelOptions { get; }
         public ObservableCollection<SelectableMeasurementOption> MeasurementOptions { get; }
         public ObservableCollection<MeasurementResult> Results { get; }
-
-        private ChannelOption? _selectedChannel;
-        public ChannelOption? SelectedChannel
-        {
-            get => _selectedChannel;
-            set => SetProperty(ref _selectedChannel, value);
-        }
 
         public string IpAddress
         {
@@ -113,39 +99,29 @@ namespace ScopeDesk.ViewModels
         public IAsyncRelayCommand FetchMeasurementsCommand { get; }
         public IRelayCommand OpenLogsCommand { get; }
 
-        private IEnumerable<ChannelOption> BuildChannelOptions()
+        private IEnumerable<SelectableChannelOption> BuildChannelOptions()
         {
-            yield return new ChannelOption { Id = "ALL", DisplayName = "All Channels", IsAll = true };
-            yield return new ChannelOption { Id = "C1", DisplayName = "Channel 1" };
-            yield return new ChannelOption { Id = "C2", DisplayName = "Channel 2" };
-            yield return new ChannelOption { Id = "C3", DisplayName = "Channel 3" };
-            yield return new ChannelOption { Id = "C4", DisplayName = "Channel 4" };
+            yield return new SelectableChannelOption { Id = "C1", DisplayName = "Channel 1", IsSelected = true };
+            yield return new SelectableChannelOption { Id = "C2", DisplayName = "Channel 2", IsSelected = true };
+            yield return new SelectableChannelOption { Id = "C3", DisplayName = "Channel 3", IsSelected = true };
+            yield return new SelectableChannelOption { Id = "C4", DisplayName = "Channel 4", IsSelected = true };
         }
 
         private IEnumerable<SelectableMeasurementOption> BuildMeasurementOptions()
         {
             var items = new List<SelectableMeasurementOption>
             {
-                new SelectableMeasurementOption { Id = "ALL", DisplayName = "All measurements", IsAll = true },
-                new SelectableMeasurementOption { Id = "Mean", DisplayName = "Mean" },
-                new SelectableMeasurementOption { Id = "Amplitude", DisplayName = "Amplitude" },
-                new SelectableMeasurementOption { Id = "Frequency", DisplayName = "Frequency" },
-                new SelectableMeasurementOption { Id = "Rise Time", DisplayName = "Rise Time" },
-                new SelectableMeasurementOption { Id = "Fall Time", DisplayName = "Fall Time" },
-                new SelectableMeasurementOption { Id = "Peak-to-Peak", DisplayName = "Peak-to-Peak" },
-                new SelectableMeasurementOption { Id = "Width", DisplayName = "Width" },
-                new SelectableMeasurementOption { Id = "Period", DisplayName = "Period" }
+                new SelectableMeasurementOption { Id = "Mean", DisplayName = "Mean", IsSelected = true },
+                new SelectableMeasurementOption { Id = "Amplitude", DisplayName = "Amplitude", IsSelected = true },
+                new SelectableMeasurementOption { Id = "Frequency", DisplayName = "Frequency", IsSelected = true },
+                new SelectableMeasurementOption { Id = "Rise Time", DisplayName = "Rise Time", IsSelected = true },
+                new SelectableMeasurementOption { Id = "Fall Time", DisplayName = "Fall Time", IsSelected = true },
+                new SelectableMeasurementOption { Id = "Peak-to-Peak", DisplayName = "Peak-to-Peak", IsSelected = true },
+                new SelectableMeasurementOption { Id = "Width", DisplayName = "Width", IsSelected = true },
+                new SelectableMeasurementOption { Id = "Period", DisplayName = "Period", IsSelected = true }
             };
 
             return items;
-        }
-
-        private void WireMeasurementSelection()
-        {
-            foreach (var option in MeasurementOptions)
-            {
-                option.PropertyChanged += MeasurementOption_PropertyChanged;
-            }
         }
 
         private async Task ConnectAsync()
@@ -201,47 +177,13 @@ namespace ScopeDesk.ViewModels
             }
         }
 
-        private void MeasurementOption_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
-        {
-            if (e.PropertyName != nameof(SelectableMeasurementOption.IsSelected) || sender is not SelectableMeasurementOption changed)
-            {
-                return;
-            }
-
-            if (changed.IsAll)
-            {
-                foreach (var option in MeasurementOptions.Where(o => !o.IsAll))
-                {
-                    option.IsSelected = changed.IsSelected;
-                }
-            }
-            else
-            {
-                var allOption = MeasurementOptions.FirstOrDefault(o => o.IsAll);
-                if (allOption == null)
-                {
-                    return;
-                }
-
-                if (!changed.IsSelected)
-                {
-                    allOption.IsSelected = false;
-                }
-                else if (MeasurementOptions.Where(o => !o.IsAll).All(o => o.IsSelected))
-                {
-                    allOption.IsSelected = true;
-                }
-            }
-        }
-
         private IEnumerable<MeasurementOption> GetSelectedMeasurements()
         {
-            var allSelected = MeasurementOptions.FirstOrDefault(o => o.IsAll)?.IsSelected == true;
-            var selected = MeasurementOptions.Where(o => o.IsSelected && !o.IsAll).ToList();
+            var selected = MeasurementOptions.Where(o => o.IsSelected).ToList();
 
-            if (allSelected || selected.Count == 0)
+            if (selected.Count == 0)
             {
-                return MeasurementOptions.Where(o => !o.IsAll)
+                return MeasurementOptions
                     .Select(o => new MeasurementOption { Id = o.Id, DisplayName = o.DisplayName });
             }
 
@@ -250,12 +192,15 @@ namespace ScopeDesk.ViewModels
 
         private IEnumerable<ChannelOption> GetSelectedChannels()
         {
-            if (SelectedChannel == null || SelectedChannel.IsAll)
+            var selected = ChannelOptions.Where(c => c.IsSelected).ToList();
+
+            if (selected.Count == 0)
             {
-                return ChannelOptions.Where(c => !c.IsAll).ToList();
+                return ChannelOptions
+                    .Select(c => new ChannelOption { Id = c.Id, DisplayName = c.DisplayName });
             }
 
-            return new List<ChannelOption> { SelectedChannel };
+            return selected.Select(c => new ChannelOption { Id = c.Id, DisplayName = c.DisplayName });
         }
 
         private void OpenLogsFolder()

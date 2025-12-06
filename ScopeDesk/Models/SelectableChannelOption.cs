@@ -2,7 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace ScopeDesk.Models
 {
-    public class SelectableMeasurementOption : ObservableObject
+    public class SelectableChannelOption : ObservableObject
     {
         public string Id { get; init; } = string.Empty;
         public string DisplayName { get; init; } = string.Empty;

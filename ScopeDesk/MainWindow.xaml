@@ -90,10 +90,16 @@
                 <Border Grid.Row="1" Grid.Column="0" Background="{DynamicResource CardBrush}" Padding="16" CornerRadius="8" Margin="0,0,16,16">
                     <StackPanel>
                         <TextBlock Text="Channel" Style="{StaticResource LabelText}" Margin="0,0,0,8" />
-                        <ComboBox ItemsSource="{Binding ChannelOptions}"
-                                  SelectedItem="{Binding SelectedChannel}"
-                                  Style="{StaticResource InputComboBox}"
-                                  DisplayMemberPath="DisplayName" />
+                        <ItemsControl ItemsSource="{Binding ChannelOptions}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <CheckBox Content="{Binding DisplayName}"
+                                              IsChecked="{Binding IsSelected, Mode=TwoWay}"
+                                              Foreground="{DynamicResource ForegroundBrush}"
+                                              Margin="0,2" />
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
                     </StackPanel>
                 </Border>
 

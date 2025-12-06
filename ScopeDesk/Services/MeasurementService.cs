@@ -44,8 +44,8 @@ namespace ScopeDesk.Services
             return await Task.Run(() =>
             {
                 var results = new List<MeasurementResult>();
-                var measurementTargets = measurements.Where(m => !m.IsAll).ToList();
-                var channelTargets = channels.Where(c => !c.IsAll).ToList();
+                var measurementTargets = measurements.ToList();
+                var channelTargets = channels.ToList();
 
                 if (measurementTargets.Count == 0 || channelTargets.Count == 0)
                 {
