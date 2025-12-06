@@ -27,4 +27,8 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Resources/images/logo.png" />
+  </ItemGroup>
 </Project>
