@@ -12,7 +12,7 @@
             <RowDefinition Height="40" />
         </Grid.RowDefinitions>
 
-        <Border Grid.Row="0" Background="{DynamicResource PrimaryBrush}" Padding="20,0">
+        <Border Grid.Row="0" Background="White" Padding="20,0">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
@@ -21,15 +21,15 @@
 
                 <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
                     <Image Source="Resources/images/logo.png"
-                           Height="32"
+                           Height="36"
                            Stretch="Uniform"
                            VerticalAlignment="Center" />
-                    <TextBlock Text="ScopeDesk" FontSize="22" FontWeight="Bold" Foreground="White" Margin="12,0,0,0" />
+                    <TextBlock Text="ScopeDesk" FontSize="22" FontWeight="Bold" Foreground="{DynamicResource PrimaryBrush}" Margin="12,0,0,0" />
                 </StackPanel>
                 <TextBlock Grid.Column="1"
                            HorizontalAlignment="Right"
                            VerticalAlignment="Center"
-                           Foreground="White"
+                           Foreground="{DynamicResource PrimaryBrush}"
                            FontWeight="SemiBold"
                            Text="{Binding StatusMessage}"
                            TextTrimming="CharacterEllipsis"
@@ -37,7 +37,9 @@
             </Grid>
         </Border>
 
-        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+        <ScrollViewer Grid.Row="1"
+                      VerticalScrollBarVisibility="Auto"
+                      HorizontalScrollBarVisibility="Disabled">
             <Grid Margin="24">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
@@ -201,6 +203,8 @@
                                   CanUserAddRows="False"
                                   CanUserDeleteRows="False"
                                   IsReadOnly="True"
+                                  MaxHeight="320"
+                                  ScrollViewer.VerticalScrollBarVisibility="Auto"
                                   Background="Transparent"
                                   Foreground="{DynamicResource ForegroundBrush}"
                                   BorderBrush="{DynamicResource SecondaryBrush}">

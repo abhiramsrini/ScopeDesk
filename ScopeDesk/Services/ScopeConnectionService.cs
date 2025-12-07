@@ -31,7 +31,8 @@ namespace ScopeDesk.Services
             {
                 try
                 {
-                    var type = Type.GetTypeFromProgID("LeCroy.ActiveDSO");
+                    var type = Type.GetTypeFromProgID("LeCroy.ActiveDSOCtrl.1") ??
+                               Type.GetTypeFromProgID("LeCroy.ActiveDSOCtrl");
 
                     if (type == null)
                     {
@@ -42,7 +43,7 @@ namespace ScopeDesk.Services
 
                     _scopeCom = Activator.CreateInstance(type);
 
-                    _scopeCom?.MakeConnection($"IP:{ipAddress}", string.Empty, string.Empty, string.Empty);
+                    _scopeCom?.MakeConnection($"TCPIP:{ipAddress}", string.Empty, string.Empty, string.Empty);
 
                     IsConnected = true;
                     _logger.LogInformation("Connected to oscilloscope at {Ip}", ipAddress);

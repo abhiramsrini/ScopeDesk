@@ -105,7 +105,8 @@
         <Setter Property="GridLinesVisibility" Value="None" />
         <Setter Property="RowHeaderWidth" Value="0" />
         <Setter Property="Margin" Value="0,10,0,0" />
-        <Setter Property="Background" Value="#14142F" />
+        <Setter Property="Background" Value="#111225" />
+        <Setter Property="RowBackground" Value="#111225" />
         <Setter Property="BorderBrush" Value="#2F3158" />
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="HorizontalGridLinesBrush" Value="#2F3158" />
