@@ -4,11 +4,11 @@
 ScopeDesk is a .NET 7 WPF client to connect to a LeCroy oscilloscope via ActiveDSO, select channels/measurements, and fetch measurement values with branded styling and rolling logs.
 
 ## Branding
+- Header on white with logo at `Resources/images/logo.png`
 - Primary: `#241F61`
 - Secondary: `#2F308B`
 - Tertiary: `#ED1C24`
 - Theme resource dictionary: `ScopeDesk/Resources/Theme.xaml`
-- Logo: placeholder slot in header (to be added later)
 
 ## Tech Stack
 - .NET 7 WPF, C#
@@ -23,13 +23,14 @@ ScopeDesk is a .NET 7 WPF client to connect to a LeCroy oscilloscope via ActiveD
 - Logging: `%LocalAppData%/ScopeDesk/logs/scope.log`, ~5 MB per file, retain 10
 
 ## Key Components
-- `Services/ScopeConnectionService`: ActiveDSO connect/disconnect (`MakeConnection("IP:<addr>")`)
+- `Services/ScopeConnectionService`: ActiveDSO connect/disconnect (`MakeConnection("IP:<addr>")`), SCPI send helper
 - `Services/MeasurementService`: VBS measurement calls mapped to P1–P8 slots (Amplitude, Mean, Rise, Fall, PeakToPeak, Frequency, Width, Period); uses stub values if COM missing
-- `ViewModels/MainViewModel`: connection state, selection logic (All channels C1–C4; All measurements or specific), fetch command, status/footer, open logs command
-- `MainWindow.xaml`: UI layout with connection panel, channel/measurement selectors, results grid, and log shortcut
+- `ViewModels/MainViewModel`: connection state, checkbox-based channel/measurement selection (all preselected), fetch command, SCPI command/response, status, open logs command
+- `MainWindow.xaml`: UI layout with header/logo, connection + SCPI panel, checkbox selectors, results grid, footer with Primeasure link
 
 ## Expected Usage
 1) Enter scope IP (LAN), Connect.
-2) Choose channels (default: All) and measurements (default: All).
+2) Choose/toggle channels and measurements (all start selected).
 3) Fetch measurements; results render in grid with timestamps.
-4) Open logs folder if needed for diagnostics.
+4) Optionally send SCPI command and read response.
+5) Open logs folder if needed for diagnostics.

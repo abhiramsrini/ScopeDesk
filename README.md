@@ -9,16 +9,17 @@ WPF/.NET 7 desktop app to control a LeCroy oscilloscope via ActiveDSO with a bra
 - Logging via Serilog (rolling file, size-based retention)
 - COM interop to `LeCroy.ActiveDSO`
 
-## Features (initial)
+## Features
 - Connect/Disconnect to scope over LAN (default IP configurable)
-- Channel selection: All or C1–C4
-- Measurement selection: All or specific (Amplitude, Mean, Rise Time, Fall Time, Peak-to-Peak, Frequency, Width, Period)
+- Channel selection via checkboxes (C1–C4), all selected by default
+- Measurement selection via checkboxes (Amplitude, Mean, Rise Time, Fall Time, Peak-to-Peak, Frequency, Width, Period), all selected by default
 - Fetch measurements and render tabular results with timestamps
+- Send ad-hoc SCPI commands and view responses
 - Open logs folder shortcut
 
 ## Branding
-- Primary `#241F61`, Secondary `#2F308B`, Tertiary `#ED1C24`
-- Theme defined in `ScopeDesk/Resources/Theme.xaml`; logo placeholder ready for future drop-in
+- Header is light with the Primeasure logo; primary `#241F61`, secondary `#2F308B`, tertiary `#ED1C24`
+- Theme defined in `ScopeDesk/Resources/Theme.xaml`; logo at `Resources/images/logo.png`
 
 ## Configuration
 `ScopeDesk/appsettings.json`:
