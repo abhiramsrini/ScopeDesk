@@ -7,10 +7,12 @@ using ScopeDesk.Services;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Windows.Data;
 
 namespace ScopeDesk.ViewModels
 {
@@ -28,6 +30,7 @@ namespace ScopeDesk.ViewModels
         private bool _isConnected;
         private string _statusMessage = "Disconnected";
         private string _footerMessage = string.Empty;
+        private string _filterText = string.Empty;
 
         public MainViewModel(
             ScopeConnectionService connectionService,
@@ -48,6 +51,8 @@ namespace ScopeDesk.ViewModels
             MeasurementOptions = new ObservableCollection<SelectableMeasurementOption>(BuildMeasurementOptions());
 
             Results = new ObservableCollection<MeasurementResult>();
+            ResultsView = CollectionViewSource.GetDefaultView(Results);
+            ResultsView.Filter = FilterResults;
 
             FooterMessage = $"Logs: {Path.GetDirectoryName(_logPath)}";
 
@@ -61,6 +66,7 @@ namespace ScopeDesk.ViewModels
         public ObservableCollection<SelectableChannelOption> ChannelOptions { get; }
         public ObservableCollection<SelectableMeasurementOption> MeasurementOptions { get; }
         public ObservableCollection<MeasurementResult> Results { get; }
+        public ICollectionView ResultsView { get; }
 
         public string IpAddress
         {
@@ -84,6 +90,18 @@ namespace ScopeDesk.ViewModels
         {
             get => _scpiResponse;
             set => SetProperty(ref _scpiResponse, value);
+        }
+
+        public string FilterText
+        {
+            get => _filterText;
+            set
+            {
+                if (SetProperty(ref _filterText, value))
+                {
+                    ResultsView.Refresh();
+                }
+            }
         }
 
         public bool IsConnected
@@ -208,6 +226,7 @@ namespace ScopeDesk.ViewModels
                     Results.Add(result);
                 }
 
+                ResultsView.Refresh();
                 StatusMessage = $"Fetched {results.Count} measurement(s).";
             }
             catch (Exception ex)
@@ -266,6 +285,23 @@ namespace ScopeDesk.ViewModels
             {
                 _logger.LogWarning(ex, "Failed to open logs folder.");
             }
+        }
+
+        private bool FilterResults(object item)
+        {
+            if (item is not MeasurementResult result)
+            {
+                return false;
+            }
+
+            if (string.IsNullOrWhiteSpace(FilterText))
+            {
+                return true;
+            }
+
+            var text = FilterText.Trim();
+            return (result.Measurement?.IndexOf(text, StringComparison.OrdinalIgnoreCase) >= 0) ||
+                   (result.Channel?.IndexOf(text, StringComparison.OrdinalIgnoreCase) >= 0);
         }
     }
 }
