@@ -43,7 +43,7 @@ namespace ScopeDesk.Services
 
                     _scopeCom = Activator.CreateInstance(type);
 
-                    _scopeCom?.MakeConnection($"TCPIP:{ipAddress}", string.Empty, string.Empty, string.Empty);
+                    _scopeCom?.MakeConnection($"TCPIP:{ipAddress}");
 
                     IsConnected = true;
                     _logger.LogInformation("Connected to oscilloscope at {Ip}", ipAddress);
