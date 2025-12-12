@@ -43,7 +43,6 @@
             <Grid Margin="24">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
                 <Grid.ColumnDefinitions>
@@ -113,6 +112,13 @@
                                     </TextBlock>
                                 </Border>
                             </StackPanel>
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,6,0,0">
+                                <TextBlock Text="Serial Number:" Style="{StaticResource LabelText}" />
+                                <TextBlock Text="{Binding SerialNumber}"
+                                           Margin="8,0,0,0"
+                                           FontWeight="SemiBold"
+                                           Foreground="{DynamicResource ForegroundBrush}" />
+                            </StackPanel>
                         </StackPanel>
 
                         <!-- SCPI section -->
@@ -148,10 +154,10 @@
                     </Grid>
                 </Border>
 
-                <Border Grid.Row="1" Grid.Column="0" Style="{StaticResource CardBorder}" Margin="0,0,16,16">
+                <Border Grid.Row="1" Grid.Column="0" Style="{StaticResource CardBorder}" Margin="0,0,16,0">
                     <StackPanel>
-                        <TextBlock Text="Channel" Style="{StaticResource LabelText}" Margin="0,0,0,8" />
-                        <ItemsControl ItemsSource="{Binding ChannelOptions}" Margin="0,4,0,0">
+                        <TextBlock Text="Channels" Style="{StaticResource LabelText}" Margin="0,0,0,8" />
+                        <ItemsControl ItemsSource="{Binding ChannelOptions}" Margin="0,4,0,12">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
                                     <CheckBox Content="{Binding DisplayName}"
@@ -160,11 +166,7 @@
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
-                    </StackPanel>
-                </Border>
-
-                <Border Grid.Row="1" Grid.Column="1" Style="{StaticResource CardBorder}" Margin="0,0,0,16">
-                    <StackPanel>
+                        <Separator Margin="0,4,0,12" />
                         <TextBlock Text="Measurements" Style="{StaticResource LabelText}" Margin="0,0,0,8" />
                         <ListBox ItemsSource="{Binding MeasurementOptions}" BorderThickness="0" Background="Transparent" Margin="0,4,0,0">
                             <ListBox.ItemTemplate>
@@ -178,58 +180,89 @@
                     </StackPanel>
                 </Border>
 
-                <Border Grid.Row="2" Grid.ColumnSpan="2" Style="{StaticResource CardBorder}" Padding="20" Margin="0">
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="*" />
-                        </Grid.RowDefinitions>
-                        <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
-                            <Button Content="Fetch Measurements"
-                                    Style="{StaticResource PrimaryButton}"
-                                    Command="{Binding FetchMeasurementsCommand}"
-                                    IsEnabled="{Binding IsConnected}" />
-                            <Button Content="Open Logs Folder"
+                <Border Grid.Row="1" Grid.Column="1" Style="{StaticResource CardBorder}" Padding="20">
+                    <StackPanel>
+                        <Grid Margin="0,0,0,12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Orientation="Horizontal" Grid.Column="0" VerticalAlignment="Center">
+                                <TextBlock Text="Measurements Matrix" Style="{StaticResource LabelText}" VerticalAlignment="Center" />
+                                <Border Padding="8,4"
+                                        Background="#1F2145"
+                                        BorderBrush="#2F3158"
+                                        BorderThickness="1"
+                                        CornerRadius="8"
+                                        VerticalAlignment="Center"
+                                        Margin="8,0,0,0">
+                                    <TextBlock Text="{Binding LatestTimestamp, StringFormat='{}{0:HH:mm:ss}'}"
+                                               Foreground="{DynamicResource ForegroundBrush}"
+                                               FontWeight="SemiBold" />
+                                </Border>
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                <Button Content="Fetch"
+                                        Style="{StaticResource PrimaryButton}"
+                                        Command="{Binding FetchMeasurementsCommand}"
+                                        IsEnabled="{Binding IsConnected}" />
+                                <Button Content="Clear"
+                                        Style="{StaticResource GhostButton}"
+                                        Command="{Binding ClearMatrixCommand}"
+                                        Margin="8,0,0,0" />
+                            </StackPanel>
+                            <Button Grid.Column="2"
+                                    Content="Open Logs Folder"
                                     Style="{StaticResource GhostButton}"
                                     Command="{Binding OpenLogsCommand}" />
-                        </StackPanel>
-
-                        <Grid Grid.Row="1" Margin="0,8,0,6">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="*" />
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Text="Results" Style="{StaticResource LabelText}" VerticalAlignment="Center" />
-                            <TextBox Grid.Column="1"
-                                     Text="{Binding FilterText, UpdateSourceTrigger=PropertyChanged}"
-                                     Style="{StaticResource InputTextBox}"
-                                     Height="32"
-                                     Margin="12,0,0,0"
-                                     VerticalContentAlignment="Center"
-                                     ToolTip="Filter by measurement or channel" />
                         </Grid>
 
-                        <DataGrid Grid.Row="2"
-                                  AutoGenerateColumns="False"
-                                  ItemsSource="{Binding ResultsView}"
-                                  HeadersVisibility="Column"
-                                  CanUserAddRows="False"
-                                  CanUserDeleteRows="False"
-                                  IsReadOnly="True"
-                                  MaxHeight="320"
-                                  ScrollViewer.VerticalScrollBarVisibility="Auto"
-                                  Background="Transparent"
-                                  Foreground="{DynamicResource ForegroundBrush}"
-                                  BorderBrush="{DynamicResource SecondaryBrush}">
-                            <DataGrid.Columns>
-                                <DataGridTextColumn Header="Timestamp" Binding="{Binding Timestamp}" Width="160" />
-                                <DataGridTextColumn Header="Channel" Binding="{Binding Channel}" Width="80" />
-                                <DataGridTextColumn Header="Measurement" Binding="{Binding Measurement}" Width="*" />
-                                <DataGridTextColumn Header="Value" Binding="{Binding Value}" Width="180" />
-                            </DataGrid.Columns>
-                        </DataGrid>
-                    </Grid>
+                        <Border Background="#151734" BorderBrush="#2F3158" BorderThickness="1" CornerRadius="8">
+                            <StackPanel>
+                                <ItemsControl ItemsSource="{Binding MatrixHeaders}">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <UniformGrid Columns="{Binding DataContext.MatrixColumnCount, RelativeSource={RelativeSource AncestorType=Window}}" />
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border Padding="10,6" BorderBrush="#2F3158" BorderThickness="0,0,1,1">
+                                                <TextBlock Text="{Binding}" FontWeight="SemiBold" Foreground="{DynamicResource ForegroundBrush}" />
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+
+                                <ItemsControl ItemsSource="{Binding MatrixRows}">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <StackPanel />
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <ItemsControl ItemsSource="{Binding Cells}">
+                                                <ItemsControl.ItemsPanel>
+                                                    <ItemsPanelTemplate>
+                                                        <UniformGrid Columns="{Binding DataContext.MatrixColumnCount, RelativeSource={RelativeSource AncestorType=Window}}" />
+                                                    </ItemsPanelTemplate>
+                                                </ItemsControl.ItemsPanel>
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <Border Padding="10,6" BorderBrush="#2F3158" BorderThickness="0,0,1,1">
+                                                            <TextBlock Text="{Binding}" Foreground="{DynamicResource ForegroundBrush}" />
+                                                        </Border>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
                 </Border>
             </Grid>
         </ScrollViewer>

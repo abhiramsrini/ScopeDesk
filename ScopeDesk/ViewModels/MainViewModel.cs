@@ -7,12 +7,10 @@ using ScopeDesk.Services;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Windows.Data;
 
 namespace ScopeDesk.ViewModels
 {
@@ -30,7 +28,8 @@ namespace ScopeDesk.ViewModels
         private bool _isConnected;
         private string _statusMessage = "Disconnected";
         private string _footerMessage = string.Empty;
-        private string _filterText = string.Empty;
+        private DateTime? _latestTimestamp;
+        private string _serialNumber = "-";
 
         public MainViewModel(
             ScopeConnectionService connectionService,
@@ -47,12 +46,10 @@ namespace ScopeDesk.ViewModels
 
             IpAddress = _configuration["Connection:DefaultIp"] ?? _ipAddress;
             ChannelOptions = new ObservableCollection<SelectableChannelOption>(BuildChannelOptions());
-
             MeasurementOptions = new ObservableCollection<SelectableMeasurementOption>(BuildMeasurementOptions());
 
-            Results = new ObservableCollection<MeasurementResult>();
-            ResultsView = CollectionViewSource.GetDefaultView(Results);
-            ResultsView.Filter = FilterResults;
+            MatrixChannels = new ObservableCollection<string>();
+            MatrixRows = new ObservableCollection<MeasurementMatrixRow>();
 
             FooterMessage = $"Logs: {Path.GetDirectoryName(_logPath)}";
 
@@ -61,12 +58,13 @@ namespace ScopeDesk.ViewModels
             FetchMeasurementsCommand = new AsyncRelayCommand(FetchMeasurementsAsync, () => IsConnected);
             SendScpiCommand = new AsyncRelayCommand(SendScpiCommandAsync, () => IsConnected && !string.IsNullOrWhiteSpace(ScpiCommand));
             OpenLogsCommand = new RelayCommand(OpenLogsFolder);
+            ClearMatrixCommand = new RelayCommand(ClearMatrix);
         }
 
         public ObservableCollection<SelectableChannelOption> ChannelOptions { get; }
         public ObservableCollection<SelectableMeasurementOption> MeasurementOptions { get; }
-        public ObservableCollection<MeasurementResult> Results { get; }
-        public ICollectionView ResultsView { get; }
+        public ObservableCollection<string> MatrixChannels { get; }
+        public ObservableCollection<MeasurementMatrixRow> MatrixRows { get; }
 
         public string IpAddress
         {
@@ -90,18 +88,6 @@ namespace ScopeDesk.ViewModels
         {
             get => _scpiResponse;
             set => SetProperty(ref _scpiResponse, value);
-        }
-
-        public string FilterText
-        {
-            get => _filterText;
-            set
-            {
-                if (SetProperty(ref _filterText, value))
-                {
-                    ResultsView.Refresh();
-                }
-            }
         }
 
         public bool IsConnected
@@ -134,11 +120,27 @@ namespace ScopeDesk.ViewModels
             set => SetProperty(ref _footerMessage, value);
         }
 
+        public DateTime? LatestTimestamp
+        {
+            get => _latestTimestamp;
+            private set => SetProperty(ref _latestTimestamp, value);
+        }
+
+        public string SerialNumber
+        {
+            get => _serialNumber;
+            private set => SetProperty(ref _serialNumber, value);
+        }
+
+        public IReadOnlyList<string> MatrixHeaders => new[] { "Measurement" }.Concat(MatrixChannels).ToList();
+        public int MatrixColumnCount => MatrixChannels.Count + 1;
+
         public IAsyncRelayCommand ConnectCommand { get; }
         public IAsyncRelayCommand DisconnectCommand { get; }
         public IAsyncRelayCommand FetchMeasurementsCommand { get; }
         public IAsyncRelayCommand SendScpiCommand { get; }
         public IRelayCommand OpenLogsCommand { get; }
+        public IRelayCommand ClearMatrixCommand { get; }
 
         private IEnumerable<SelectableChannelOption> BuildChannelOptions()
         {
@@ -182,6 +184,7 @@ namespace ScopeDesk.ViewModels
             if (success)
             {
                 _logger.LogInformation("Connected to scope at {Ip}", IpAddress);
+                await LoadSerialNumberAsync();
             }
         }
 
@@ -191,6 +194,7 @@ namespace ScopeDesk.ViewModels
             await _connectionService.DisconnectAsync();
             IsConnected = false;
             StatusMessage = "Disconnected";
+            SerialNumber = "-";
         }
 
         private async Task SendScpiCommandAsync()
@@ -217,16 +221,43 @@ namespace ScopeDesk.ViewModels
                 var measurementTargets = GetSelectedMeasurements().ToList();
                 var channels = GetSelectedChannels().ToList();
 
-                Results.Clear();
+                MatrixRows.Clear();
+                MatrixChannels.Clear();
 
                 var results = await _measurementService.FetchMeasurementsAsync(measurementTargets, channels);
 
-                foreach (var result in results)
+                foreach (var channel in channels)
                 {
-                    Results.Add(result);
+                    MatrixChannels.Add(channel.DisplayName);
                 }
 
-                ResultsView.Refresh();
+                LatestTimestamp = results.FirstOrDefault()?.Timestamp ?? DateTime.Now;
+
+                var lookup = results.ToLookup(r => (r.Measurement, r.Channel), r => r.Value);
+                var rows = new List<MeasurementMatrixRow>();
+
+                foreach (var measurement in measurementTargets)
+                {
+                    var cells = new List<string> { measurement.DisplayName };
+                    foreach (var channel in channels)
+                    {
+                        var value = lookup[(measurement.DisplayName, channel.DisplayName)].FirstOrDefault() ?? "-";
+                        cells.Add(value);
+                    }
+
+                    rows.Add(new MeasurementMatrixRow
+                    {
+                        Measurement = measurement.DisplayName,
+                        Cells = cells
+                    });
+                }
+
+                foreach (var row in rows)
+                {
+                    MatrixRows.Add(row);
+                }
+
+                UpdateMatrixMetadata();
                 StatusMessage = $"Fetched {results.Count} measurement(s).";
             }
             catch (Exception ex)
@@ -287,21 +318,32 @@ namespace ScopeDesk.ViewModels
             }
         }
 
-        private bool FilterResults(object item)
+        private void ClearMatrix()
         {
-            if (item is not MeasurementResult result)
-            {
-                return false;
-            }
+            MatrixRows.Clear();
+            MatrixChannels.Clear();
+            LatestTimestamp = null;
+            UpdateMatrixMetadata();
+            StatusMessage = "Matrix cleared.";
+        }
 
-            if (string.IsNullOrWhiteSpace(FilterText))
+        private async Task LoadSerialNumberAsync()
+        {
+            try
             {
-                return true;
+                SerialNumber = await _connectionService.GetSerialNumberAsync();
             }
+            catch (Exception ex)
+            {
+                SerialNumber = "Serial unavailable";
+                _logger.LogWarning(ex, "Failed to load serial number.");
+            }
+        }
 
-            var text = FilterText.Trim();
-            return (result.Measurement?.IndexOf(text, StringComparison.OrdinalIgnoreCase) >= 0) ||
-                   (result.Channel?.IndexOf(text, StringComparison.OrdinalIgnoreCase) >= 0);
+        private void UpdateMatrixMetadata()
+        {
+            OnPropertyChanged(nameof(MatrixHeaders));
+            OnPropertyChanged(nameof(MatrixColumnCount));
         }
     }
 }

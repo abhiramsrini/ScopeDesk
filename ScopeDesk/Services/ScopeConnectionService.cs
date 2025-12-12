@@ -136,5 +136,34 @@ namespace ScopeDesk.Services
                 }
             }, cancellationToken);
         }
+
+        public async Task<string> GetSerialNumberAsync(CancellationToken cancellationToken = default)
+        {
+            if (!IsConnected)
+            {
+                throw new InvalidOperationException("Oscilloscope is not connected.");
+            }
+
+            return await Task.Run(() =>
+            {
+                try
+                {
+                    if (_scopeCom == null)
+                    {
+                        _logger.LogWarning("Scope object not available; returning stub serial.");
+                        return "Stub (no COM)";
+                    }
+
+                    _scopeCom.WriteString("VBS? 'return=app.Instrument.SerialNumber'", 1);
+                    var serial = _scopeCom.ReadString(100);
+                    return serial is string s ? s.Trim() : serial?.ToString() ?? "N/A";
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Failed to read scope serial number.");
+                    return "Serial unavailable";
+                }
+            }, cancellationToken);
+        }
     }
 }
