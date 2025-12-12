@@ -11,6 +11,7 @@ namespace ScopeDesk.Services
     {
         private readonly ILogger<ScopeConnectionService> _logger;
         private dynamic? _scopeCom;
+        private bool _headerConfigured;
 
         public bool IsConnected { get; private set; }
         public bool HasScopeObject => _scopeCom != null;
@@ -44,6 +45,7 @@ namespace ScopeDesk.Services
                     _scopeCom = Activator.CreateInstance(type);
 
                     _scopeCom?.MakeConnection($"TCPIP:{ipAddress}");
+                    TryDisableCommandHeaders();
 
                     IsConnected = true;
                     _logger.LogInformation("Connected to oscilloscope at {Ip}", ipAddress);
@@ -82,6 +84,7 @@ namespace ScopeDesk.Services
                         finally
                         {
                             _scopeCom = null;
+                            _headerConfigured = false;
                         }
                     }
                 }
@@ -121,10 +124,13 @@ namespace ScopeDesk.Services
                         return "Scope object not available.";
                     }
 
-                    // Write command and read response
+                    if (!_headerConfigured)
+                    {
+                        TryDisableCommandHeaders();
+                    }
+
+                    // Write command exactly as provided and read response
                     _scopeCom.WriteString(command, 1);
-                    _scopeCom.WriteString("CHDR OFF", 1); // ensure clean response format if applicable
-                    _scopeCom.WriteString("?", 1);
 
                     var response = _scopeCom.ReadString(5000);
                     return response is string s ? s.Trim() : response?.ToString() ?? "No response.";
@@ -164,6 +170,19 @@ namespace ScopeDesk.Services
                     return "Serial unavailable";
                 }
             }, cancellationToken);
+        }
+
+        private void TryDisableCommandHeaders()
+        {
+            try
+            {
+                _scopeCom?.WriteString("CHDR OFF", 1);
+                _headerConfigured = true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogDebug(ex, "Failed to disable command headers (CHDR OFF).");
+            }
         }
     }
 }
