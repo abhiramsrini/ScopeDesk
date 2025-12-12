@@ -5,7 +5,7 @@
     <UseWPF>true</UseWPF>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <ApplicationIcon />
+    <ApplicationIcon>Resources/images/logo.ico</ApplicationIcon>
     <Platforms>AnyCPU</Platforms>
     <EnableWindowsTargeting>true</EnableWindowsTargeting>
   </PropertyGroup>
@@ -30,5 +30,6 @@
 
   <ItemGroup>
     <Resource Include="Resources/images/logo.png" />
+    <Resource Include="Resources/images/logo.ico" />
   </ItemGroup>
 </Project>
