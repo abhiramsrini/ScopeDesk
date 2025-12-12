@@ -40,6 +40,18 @@ dotnet run --project ScopeDesk/ScopeDesk.csproj
 ```
 Provide the scope IP, connect (serial number shown on success), select/toggle channels and measurements, then fetch. Use "Clear" to reset the matrix and "Open Logs Folder" for diagnostics.
 
+## Packaging (Windows EXE)
+Publish a desktop build:
+- Framework-dependent (requires .NET 7 desktop runtime on the target):
+  ```
+  dotnet publish ScopeDesk/ScopeDesk.csproj -c Release -r win10-x64 --self-contained false
+  ```
+- Self-contained (runtime bundled):
+  ```
+  dotnet publish ScopeDesk/ScopeDesk.csproj -c Release -r win10-x64 --self-contained true
+  ```
+The executable will be at `ScopeDesk/bin/Release/net7.0-windows/win10-x64/publish/ScopeDesk.exe`; copy that folder to the target PC or create a shortcut to the EXE.
+
 ## Notes
 - Measurement calls map to VBS param engine slots P1–P8; stub values are returned when the COM object isn’t available.
 - SCPI helper writes the command, issues `CHDR OFF`, then `?` to read the response.
