@@ -21,6 +21,11 @@
 - Light header with Primeasure logo; primary `#241F61`, secondary `#2F308B`, tertiary `#ED1C24`
 - Theme dictionary at `ScopeDesk/Resources/Theme.xaml`; logo at `ScopeDesk/Resources/images/logo.png`
 
+## Ownership & Contact
+- Owned by Primeasure (`www.primeasure.com`)
+- Developer: Abhiram Srinivasan
+- Email: abhiramsrini@primeasure.com
+
 ## Configuration (`ScopeDesk/appsettings.json`)
 - `Connection:DefaultIp` (default `192.168.0.100`); `DefaultPort` stored but unused in the current TCPIP connection string
 - `Logging:*`: level plus rolling file path/size/retention (defaults to `%LocalAppData%/ScopeDesk/logs/scope.log`, ~5 MB per file, keep 10, roll on limit)
