@@ -9,6 +9,11 @@
 - Logging via Serilog (size-based rolling file)
 - COM interop to `LeCroy.ActiveDSOCtrl.1`/`LeCroy.ActiveDSOCtrl` (stub mode if missing)
 
+## Prerequisites
+- Install .NET 7 SDK for your PC from https://dotnet.microsoft.com/en-us/download/dotnet/7.0
+- Run `activedsoinstaller_2.43.exe` to install the LeCroy ActiveDSO control
+- Verify ActiveDSO is present at `C:\Program Files (x86)\LeCroy\ActiveDSO\ActiveDSO.ocx`
+
 ## Features
 - Connect/Disconnect to the scope over LAN (`TCPIP:<ip>`), default IP from config, stub mode when ActiveDSO COM is unavailable
 - Channel selection (C1–C4) and measurement selection (Amplitude, Mean, Rise Time, Fall Time, Peak-to-Peak, Frequency, Width, Period), all pre-selected
@@ -16,15 +21,6 @@
 - Show scope serial number after connecting, status badge + header message for connection state
 - Send ad-hoc SCPI commands (response readback with `CHDR OFF`/`?`) and view responses
 - Footer link to Primeasure and button to open the logs folder from the matrix card
-
-## Branding
-- Light header with Primeasure logo; primary `#241F61`, secondary `#2F308B`, tertiary `#ED1C24`
-- Theme dictionary at `ScopeDesk/Resources/Theme.xaml`; logo at `ScopeDesk/Resources/images/logo.png`
-
-## Ownership & Contact
-- Owned by Primeasure (`www.primeasure.com`)
-- Developer: Abhiram Srinivasan
-- Email: abhiramsrini@primeasure.com
 
 ## Configuration (`ScopeDesk/appsettings.json`)
 - `Connection:DefaultIp` (default `192.168.0.100`); `DefaultPort` stored but unused in the current TCPIP connection string
@@ -61,3 +57,12 @@ The executable will be at `ScopeDesk/bin/Release/net7.0-windows/win10-x64/publis
 - Measurement calls map to VBS param engine slots P1–P8; stub values are returned when the COM object isn’t available.
 - SCPI helper writes the command, issues `CHDR OFF`, then `?` to read the response.
 - Serilog config auto-creates the log directory before writing.
+
+## FAQ
+- **How do I verify network reachability?** Ping the oscilloscope IP. You can also browse to the IP address; the scope’s landing page should show its basic setup values.
+- **The landing page works but the app shows no measurements—what next?** Restart the oscilloscope, then relaunch ScopeDesk and try again.
+
+## Ownership & Contact
+- Owned by Primeasure (`www.primeasure.com`)
+- Developer: Abhiram Srinivasan
+- Email: abhiramsrini@primeasure.com
