@@ -62,7 +62,7 @@ namespace ScopeDesk.Services
 
         public async Task DisconnectAsync(CancellationToken cancellationToken = default)
         {
-            if (!IsConnected)
+            if (!IsConnected && _scopeCom == null)
             {
                 return;
             }
@@ -83,8 +83,7 @@ namespace ScopeDesk.Services
                         }
                         finally
                         {
-                            _scopeCom = null;
-                            _headerConfigured = false;
+                            ReleaseScopeObject();
                         }
                     }
                 }
@@ -160,7 +159,7 @@ namespace ScopeDesk.Services
                         return "Stub (no COM)";
                     }
 
-                    _scopeCom.WriteString("VBS? 'return=app.Instrument.SerialNumber'", 1);
+                    _scopeCom.WriteString("VBS? 'return=app.InstrumentID'", 1);
                     var serial = _scopeCom.ReadString(100);
                     return serial is string s ? s.Trim() : serial?.ToString() ?? "N/A";
                 }
@@ -182,6 +181,26 @@ namespace ScopeDesk.Services
             catch (Exception ex)
             {
                 _logger.LogDebug(ex, "Failed to disable command headers (CHDR OFF).");
+            }
+        }
+
+        private void ReleaseScopeObject()
+        {
+            try
+            {
+                if (_scopeCom != null && Marshal.IsComObject(_scopeCom))
+                {
+                    Marshal.FinalReleaseComObject(_scopeCom);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogDebug(ex, "Failed to release ActiveDSO COM object.");
+            }
+            finally
+            {
+                _scopeCom = null;
+                _headerConfigured = false;
             }
         }
     }

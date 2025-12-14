@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Serilog;
 using System;
 using System.Windows;
@@ -48,7 +49,29 @@ namespace ScopeDesk
 
         protected override void OnExit(ExitEventArgs e)
         {
-            Host?.Dispose();
+            if (Host != null)
+            {
+                try
+                {
+                    var connectionService = Host.Services.GetService<ScopeConnectionService>();
+                    connectionService?.DisconnectAsync().GetAwaiter().GetResult();
+                }
+                catch (Exception ex)
+                {
+                    try
+                    {
+                        var logger = Host.Services.GetService<ILogger<App>>();
+                        logger?.LogWarning(ex, "Failed to disconnect from oscilloscope on shutdown.");
+                    }
+                    catch
+                    {
+                        // Swallow logging errors during shutdown.
+                    }
+                }
+
+                Host.Dispose();
+            }
+
             base.OnExit(e);
         }
     }
