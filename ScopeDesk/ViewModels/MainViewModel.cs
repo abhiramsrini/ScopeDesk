@@ -23,6 +23,8 @@ namespace ScopeDesk.ViewModels
         private readonly string _logPath;
 
         private string _ipAddress = "192.168.0.100";
+        private string _visaResource = string.Empty;
+        private ConnectionType _connectionType = ConnectionType.TcpIp;
         private string _scpiCommand = string.Empty;
         private string _scpiResponse = string.Empty;
         private bool _isConnected;
@@ -45,6 +47,10 @@ namespace ScopeDesk.ViewModels
             _logPath = Environment.ExpandEnvironmentVariables(_configuration["Logging:File:Path"] ?? "%LocalAppData%/ScopeDesk/logs/scope.log");
 
             IpAddress = _configuration["Connection:DefaultIp"] ?? _ipAddress;
+            VisaResource = _configuration["Connection:DefaultVisaResource"] ?? "USB0::0x05FF::0xFFFF::SERIAL::INSTR";
+            ConnectionType = Enum.TryParse(_configuration["Connection:DefaultInterface"], true, out ConnectionType parsedType)
+                ? parsedType
+                : ConnectionType.TcpIp;
             ChannelOptions = new ObservableCollection<SelectableChannelOption>(BuildChannelOptions());
             MeasurementOptions = new ObservableCollection<SelectableMeasurementOption>(BuildMeasurementOptions());
 
@@ -70,6 +76,18 @@ namespace ScopeDesk.ViewModels
         {
             get => _ipAddress;
             set => SetProperty(ref _ipAddress, value);
+        }
+
+        public string VisaResource
+        {
+            get => _visaResource;
+            set => SetProperty(ref _visaResource, value);
+        }
+
+        public ConnectionType ConnectionType
+        {
+            get => _connectionType;
+            set => SetProperty(ref _connectionType, value);
         }
 
         public string ScpiCommand
@@ -169,21 +187,27 @@ namespace ScopeDesk.ViewModels
 
         private async Task ConnectAsync()
         {
-            if (string.IsNullOrWhiteSpace(IpAddress))
+            string target = ConnectionType == ConnectionType.TcpIp ? IpAddress : VisaResource;
+
+            if (string.IsNullOrWhiteSpace(target))
             {
-                StatusMessage = "Enter a valid IP address.";
+                StatusMessage = ConnectionType == ConnectionType.TcpIp
+                    ? "Enter a valid IP address."
+                    : "Enter a valid VISA resource string.";
                 return;
             }
 
             StatusMessage = "Connecting...";
-            var success = await _connectionService.ConnectAsync(IpAddress);
+            var success = await _connectionService.ConnectAsync(target, ConnectionType);
 
             IsConnected = success;
-            StatusMessage = success ? $"Connected to {IpAddress}" : $"Failed to connect to {IpAddress}";
+            StatusMessage = success
+                ? $"Connected to {ConnectionType} ({target})"
+                : $"Failed to connect to {ConnectionType} ({target})";
 
             if (success)
             {
-                _logger.LogInformation("Connected to scope at {Ip}", IpAddress);
+                _logger.LogInformation("Connected to scope via {Mode} ({Target})", ConnectionType, target);
                 await LoadSerialNumberAsync();
             }
         }

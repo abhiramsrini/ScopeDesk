@@ -66,7 +66,30 @@
                         </Grid.RowDefinitions>
                         <!-- Connection section -->
                         <StackPanel Grid.Row="0" Grid.Column="0" Grid.RowSpan="2" Orientation="Vertical">
-                            <TextBlock Text="Oscilloscope IP" Style="{StaticResource LabelText}" />
+                            <TextBlock Text="Interface" Style="{StaticResource LabelText}" />
+                            <StackPanel Orientation="Horizontal" Margin="0,6,0,10">
+                                <RadioButton Content="TCP/IP"
+                                             IsChecked="{Binding ConnectionType, Converter={StaticResource EnumEqualsConverter}, ConverterParameter=TcpIp}"
+                                             GroupName="Interface" />
+                                <RadioButton Content="USBTMC"
+                                             IsChecked="{Binding ConnectionType, Converter={StaticResource EnumEqualsConverter}, ConverterParameter=UsbTmc}"
+                                             GroupName="Interface"
+                                             Margin="12,0,0,0" />
+                            </StackPanel>
+
+                            <TextBlock>
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock" BasedOn="{StaticResource LabelText}">
+                                        <Setter Property="Text" Value="Oscilloscope IP" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding ConnectionType}" Value="UsbTmc">
+                                                <Setter Property="Text" Value="VISA Resource" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+
                             <Grid Margin="0,6,0,0">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="260" />
@@ -75,10 +98,36 @@
                                 </Grid.ColumnDefinitions>
 
                                 <TextBox Grid.Column="0"
-                                         Text="{Binding IpAddress, UpdateSourceTrigger=PropertyChanged}" 
-                                         Style="{StaticResource InputTextBox}"
+                                         Text="{Binding IpAddress, UpdateSourceTrigger=PropertyChanged}"
                                          Margin="0,0,12,0"
-                                         VerticalAlignment="Center" />
+                                         VerticalAlignment="Center">
+                                    <TextBox.Style>
+                                        <Style TargetType="TextBox" BasedOn="{StaticResource InputTextBox}">
+                                            <Setter Property="Visibility" Value="Visible" />
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding ConnectionType}" Value="UsbTmc">
+                                                    <Setter Property="Visibility" Value="Collapsed" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBox.Style>
+                                </TextBox>
+
+                                <TextBox Grid.Column="0"
+                                         Text="{Binding VisaResource, UpdateSourceTrigger=PropertyChanged}"
+                                         Margin="0,0,12,0"
+                                         VerticalAlignment="Center">
+                                    <TextBox.Style>
+                                        <Style TargetType="TextBox" BasedOn="{StaticResource InputTextBox}">
+                                            <Setter Property="Visibility" Value="Collapsed" />
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding ConnectionType}" Value="UsbTmc">
+                                                    <Setter Property="Visibility" Value="Visible" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBox.Style>
+                                </TextBox>
 
                                 <Button Grid.Column="1"
                                         Content="Connect"

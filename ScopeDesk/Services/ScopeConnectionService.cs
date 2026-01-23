@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Logging;
+using ScopeDesk.Models;
 using System;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -12,6 +13,7 @@ namespace ScopeDesk.Services
         private readonly ILogger<ScopeConnectionService> _logger;
         private dynamic? _scopeCom;
         private bool _headerConfigured;
+        private ConnectionType _connectionType = ConnectionType.TcpIp;
 
         public bool IsConnected { get; private set; }
         public bool HasScopeObject => _scopeCom != null;
@@ -21,12 +23,14 @@ namespace ScopeDesk.Services
             _logger = logger;
         }
 
-        public async Task<bool> ConnectAsync(string ipAddress, CancellationToken cancellationToken = default)
+        public async Task<bool> ConnectAsync(string target, ConnectionType connectionType = ConnectionType.TcpIp, CancellationToken cancellationToken = default)
         {
             if (IsConnected)
             {
                 return true;
             }
+
+            _connectionType = connectionType;
 
             return await Task.Run(() =>
             {
@@ -44,15 +48,16 @@ namespace ScopeDesk.Services
 
                     _scopeCom = Activator.CreateInstance(type);
 
-                    _scopeCom?.MakeConnection($"TCPIP:{ipAddress}");
+                    var connectionString = BuildConnectionString(target, connectionType);
+                    _scopeCom?.MakeConnection(connectionString);
                     TryDisableCommandHeaders();
 
                     IsConnected = true;
-                    _logger.LogInformation("Connected to oscilloscope at {Ip}", ipAddress);
+                    _logger.LogInformation("Connected to oscilloscope via {Mode} ({Target})", connectionType, target);
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Failed to connect to oscilloscope at {Ip}", ipAddress);
+                    _logger.LogError(ex, "Failed to connect to oscilloscope via {Mode} ({Target})", connectionType, target);
                     IsConnected = false;
                 }
 
@@ -169,6 +174,15 @@ namespace ScopeDesk.Services
                     return "Serial unavailable";
                 }
             }, cancellationToken);
+        }
+
+        private static string BuildConnectionString(string target, ConnectionType type)
+        {
+            return type switch
+            {
+                ConnectionType.UsbTmc => $"USBTMC:{target}",
+                _ => $"TCPIP:{target}"
+            };
         }
 
         private void TryDisableCommandHeaders()

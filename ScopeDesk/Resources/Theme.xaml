@@ -22,6 +22,7 @@
     <SolidColorBrush x:Key="AccentBrush" Color="{StaticResource SecondaryColor}" />
 
     <conv:InverseBoolConverter x:Key="InverseBoolConverter" />
+    <conv:EnumEqualsConverter x:Key="EnumEqualsConverter" />
 
     <Style x:Key="LabelText" TargetType="TextBlock">
         <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}" />

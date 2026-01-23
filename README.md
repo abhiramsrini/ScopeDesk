@@ -12,10 +12,11 @@
 ## Prerequisites
 - Install .NET 7 SDK for your PC from https://dotnet.microsoft.com/en-us/download/dotnet/7.0
 - Run `activedsoinstaller_2.43.exe` to install the LeCroy ActiveDSO control
+- Install NI‑VISA (for USBTMC connections) and set the scope’s remote interface accordingly
 - Verify ActiveDSO is present at `C:\Program Files (x86)\LeCroy\ActiveDSO\ActiveDSO.ocx`
 
 ## Features
-- Connect/Disconnect to the scope over LAN (`TCPIP:<ip>`), default IP from config, stub mode when ActiveDSO COM is unavailable
+- Connect/Disconnect to the scope over LAN (`TCPIP:<ip>`) or USBTMC (`USBTMC:<visa resource>`); defaults come from config, stub mode when ActiveDSO COM is unavailable
 - Channel selection (C1–C4) and measurement selection (Amplitude, Mean, Rise Time, Fall Time, Peak-to-Peak, Frequency, Width, Period), all pre-selected
 - Fetch measurements into a matrix (measurements as rows, channels as columns) with the last timestamp and a Clear action
 - Show scope serial number after connecting, status badge + header message for connection state
@@ -23,7 +24,10 @@
 - Footer link to Primeasure and button to open the logs folder from the matrix card
 
 ## Configuration (`ScopeDesk/appsettings.json`)
-- `Connection:DefaultIp` (default `192.168.0.100`); `DefaultPort` stored but unused in the current TCPIP connection string
+- `Connection:DefaultInterface` (`TcpIp` or `UsbTmc`)
+- `Connection:DefaultIp` (default `192.168.0.100`)
+- `Connection:DefaultVisaResource` (example `USB0::0x05FF::0x1023::SERIAL::INSTR`)
+- `DefaultPort` stored but unused in the current TCPIP connection string
 - `Logging:*`: level plus rolling file path/size/retention (defaults to `%LocalAppData%/ScopeDesk/logs/scope.log`, ~5 MB per file, keep 10, roll on limit)
 - `Theme:*`: primary/secondary/tertiary colors
 
