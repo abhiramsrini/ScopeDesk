@@ -70,11 +70,13 @@
                             <StackPanel Orientation="Horizontal" Margin="0,6,0,10">
                                 <RadioButton Content="TCP/IP"
                                              IsChecked="{Binding ConnectionType, Converter={StaticResource EnumEqualsConverter}, ConverterParameter=TcpIp}"
-                                             GroupName="Interface" />
+                                             GroupName="Interface"
+                                             Foreground="White" />
                                 <RadioButton Content="USBTMC"
                                              IsChecked="{Binding ConnectionType, Converter={StaticResource EnumEqualsConverter}, ConverterParameter=UsbTmc}"
                                              GroupName="Interface"
-                                             Margin="12,0,0,0" />
+                                             Margin="12,0,0,0"
+                                             Foreground="White" />
                             </StackPanel>
 
                             <TextBlock>
