@@ -78,6 +78,7 @@ namespace ScopeDesk.ViewModels
             StartContinuousCommand = new AsyncRelayCommand(StartContinuousAsync, () => IsConnected && !IsContinuousRunning);
             StopContinuousCommand = new AsyncRelayCommand(StopContinuousAsync, () => IsContinuousRunning);
             ExportCsvCommand = new RelayCommand(ExportCsv, CanExportCsv);
+            CaptureScreenCommand = new AsyncRelayCommand(CaptureScreenAsync, () => IsConnected);
         }
 
         public ObservableCollection<SelectableChannelOption> ChannelOptions { get; }
@@ -135,6 +136,7 @@ namespace ScopeDesk.ViewModels
                     SendScpiCommand.NotifyCanExecuteChanged();
                     StartContinuousCommand.NotifyCanExecuteChanged();
                     StopContinuousCommand.NotifyCanExecuteChanged();
+                    CaptureScreenCommand.NotifyCanExecuteChanged();
                 }
             }
         }
@@ -193,6 +195,7 @@ namespace ScopeDesk.ViewModels
         public IAsyncRelayCommand StartContinuousCommand { get; }
         public IAsyncRelayCommand StopContinuousCommand { get; }
         public IRelayCommand ExportCsvCommand { get; }
+        public IAsyncRelayCommand CaptureScreenCommand { get; }
 
         private IEnumerable<SelectableChannelOption> BuildChannelOptions()
         {
@@ -480,6 +483,53 @@ namespace ScopeDesk.ViewModels
             IsContinuousRunning = false;
             StatusMessage = "Continuous run stopped.";
             await Task.CompletedTask;
+        }
+
+        private async Task CaptureScreenAsync()
+        {
+            if (!IsConnected)
+            {
+                StatusMessage = "Connect to the scope before capturing.";
+                return;
+            }
+
+            var dialog = new SaveFileDialog
+            {
+                Filter = "PNG Image (*.png)|*.png|Bitmap (*.bmp)|*.bmp|JPEG Image (*.jpg;*.jpeg)|*.jpg;*.jpeg|All Files (*.*)|*.*",
+                FileName = $"ScopeDesk_Screenshot_{DateTime.Now:yyyyMMdd_HHmmss}.png",
+                InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyPictures),
+                AddExtension = true,
+                DefaultExt = "png",
+                OverwritePrompt = true
+            };
+
+            var result = dialog.ShowDialog();
+            if (result != true)
+            {
+                StatusMessage = "Screen capture canceled.";
+                return;
+            }
+
+            var selectedExt = Path.GetExtension(dialog.FileName).ToUpperInvariant();
+            var format = selectedExt switch
+            {
+                ".BMP" => "BMP",
+                ".JPG" or ".JPEG" => "JPEG",
+                _ => "PNG"
+            };
+
+            try
+            {
+                StatusMessage = "Capturing screen...";
+                await _connectionService.CaptureScreenAsync(dialog.FileName, format);
+                StatusMessage = $"Saved screenshot to {dialog.FileName}.";
+                _logger.LogInformation("Captured scope screen to {File}", dialog.FileName);
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = "Failed to capture screen.";
+                _logger.LogError(ex, "Screen capture failed.");
+            }
         }
 
         private bool CanExportCsv()
