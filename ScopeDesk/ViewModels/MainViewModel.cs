@@ -319,11 +319,12 @@ namespace ScopeDesk.ViewModels
                         cells.Add(value);
                     }
 
-                    rows.Add(new MeasurementMatrixRow
+                    var row = new MeasurementMatrixRow
                     {
-                        Measurement = measurement.DisplayName,
-                        Cells = cells
-                    });
+                        Measurement = measurement.DisplayName
+                    };
+                    row.SetCells(cells);
+                    rows.Add(row);
                 }
 
                 foreach (var row in rows)
