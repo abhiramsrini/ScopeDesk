@@ -10,8 +10,10 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Win32;
 
 namespace ScopeDesk.ViewModels
 {
@@ -75,6 +77,7 @@ namespace ScopeDesk.ViewModels
             ClearMatrixCommand = new RelayCommand(ClearMatrix);
             StartContinuousCommand = new AsyncRelayCommand(StartContinuousAsync, () => IsConnected && !IsContinuousRunning);
             StopContinuousCommand = new AsyncRelayCommand(StopContinuousAsync, () => IsContinuousRunning);
+            ExportCsvCommand = new RelayCommand(ExportCsv, CanExportCsv);
         }
 
         public ObservableCollection<SelectableChannelOption> ChannelOptions { get; }
@@ -189,6 +192,7 @@ namespace ScopeDesk.ViewModels
         public IRelayCommand ClearMatrixCommand { get; }
         public IAsyncRelayCommand StartContinuousCommand { get; }
         public IAsyncRelayCommand StopContinuousCommand { get; }
+        public IRelayCommand ExportCsvCommand { get; }
 
         private IEnumerable<SelectableChannelOption> BuildChannelOptions()
         {
@@ -329,6 +333,7 @@ namespace ScopeDesk.ViewModels
             finally
             {
                 _isFetching = false;
+                ExportCsvCommand.NotifyCanExecuteChanged();
             }
         }
 
@@ -390,6 +395,7 @@ namespace ScopeDesk.ViewModels
             LatestTimestamp = null;
             UpdateMatrixMetadata();
             StatusMessage = "Matrix cleared.";
+            ExportCsvCommand.NotifyCanExecuteChanged();
         }
 
         private async Task LoadSerialNumberAsync()
@@ -474,6 +480,82 @@ namespace ScopeDesk.ViewModels
             IsContinuousRunning = false;
             StatusMessage = "Continuous run stopped.";
             await Task.CompletedTask;
+        }
+
+        private bool CanExportCsv()
+        {
+            return MatrixRows.Any();
+        }
+
+        private void ExportCsv()
+        {
+            if (!MatrixRows.Any())
+            {
+                StatusMessage = "No measurements to export.";
+                return;
+            }
+
+            var dialog = new SaveFileDialog
+            {
+                Filter = "CSV Files (*.csv)|*.csv|All Files (*.*)|*.*",
+                FileName = $"ScopeDesk_Matrix_{DateTime.Now:yyyyMMdd_HHmmss}.csv",
+                InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
+                AddExtension = true,
+                DefaultExt = "csv",
+                OverwritePrompt = true
+            };
+
+            var result = dialog.ShowDialog();
+            if (result != true)
+            {
+                StatusMessage = "Export canceled.";
+                return;
+            }
+
+            try
+            {
+                var csv = BuildCsv();
+                File.WriteAllText(dialog.FileName, csv, Encoding.UTF8);
+                StatusMessage = $"Exported matrix to {dialog.FileName}.";
+                _logger.LogInformation("Exported measurement matrix to {File}", dialog.FileName);
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = "Failed to export CSV.";
+                _logger.LogError(ex, "Error exporting measurement matrix.");
+            }
+        }
+
+        private string BuildCsv()
+        {
+            var builder = new StringBuilder();
+
+            if (LatestTimestamp.HasValue)
+            {
+                builder.Append("Timestamp,");
+                builder.AppendLine(EscapeCsv(LatestTimestamp.Value.ToString("O")));
+            }
+
+            builder.AppendLine(string.Join(',', MatrixHeaders.Select(EscapeCsv)));
+
+            foreach (var row in MatrixRows)
+            {
+                builder.AppendLine(string.Join(',', row.Cells.Select(EscapeCsv)));
+            }
+
+            return builder.ToString();
+        }
+
+        private static string EscapeCsv(string value)
+        {
+            if (value == null)
+            {
+                return string.Empty;
+            }
+
+            var needsQuotes = value.Contains(',') || value.Contains('"') || value.Contains('\n') || value.Contains('\r');
+            var escaped = value.Replace("\"", "\"\"");
+            return needsQuotes ? $"\"{escaped}\"" : escaped;
         }
     }
 }

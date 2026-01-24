@@ -301,10 +301,15 @@
                                     </Button.Style>
                                 </Button>
                             </StackPanel>
-                            <Button Grid.Column="3"
-                                    Content="Open Logs Folder"
-                                    Style="{StaticResource GhostButton}"
-                                    Command="{Binding OpenLogsCommand}" />
+                            <StackPanel Grid.Column="3" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                <Button Content="Export CSV"
+                                        Style="{StaticResource SecondaryButton}"
+                                        Command="{Binding ExportCsvCommand}"
+                                        Margin="0,0,8,0" />
+                                <Button Content="Open Logs Folder"
+                                        Style="{StaticResource GhostButton}"
+                                        Command="{Binding OpenLogsCommand}" />
+                            </StackPanel>
                         </Grid>
 
                         <Border Background="#151734" BorderBrush="#2F3158" BorderThickness="1" CornerRadius="8">
