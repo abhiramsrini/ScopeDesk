@@ -40,6 +40,7 @@ namespace ScopeDesk.ViewModels
         private DateTime? _latestTimestamp;
         private string _serialNumber = "-";
         private CancellationTokenSource? _continuousCts;
+        private bool _isContinuousFetching;
 
         public MainViewModel(
             ScopeConnectionService connectionService,
@@ -454,7 +455,7 @@ namespace ScopeDesk.ViewModels
             {
                 try
                 {
-                    await FetchMeasurementsAsync();
+                    await UpdateMatrixValuesAsync(token);
                 }
                 catch (Exception ex)
                 {
@@ -479,6 +480,62 @@ namespace ScopeDesk.ViewModels
             FetchMeasurementsCommand.NotifyCanExecuteChanged();
             StartContinuousCommand.NotifyCanExecuteChanged();
             StopContinuousCommand.NotifyCanExecuteChanged();
+        }
+
+        private async Task UpdateMatrixValuesAsync(CancellationToken token)
+        {
+            if (_isContinuousFetching)
+            {
+                return;
+            }
+
+            _isContinuousFetching = true;
+
+            try
+            {
+                var measurementTargets = GetSelectedMeasurements().ToList();
+                var channels = GetSelectedChannels().ToList();
+
+                // If the structure is empty (e.g., first run), build it once.
+                if (!MatrixRows.Any() || MatrixChannels.Count == 0)
+                {
+                    await FetchMeasurementsAsync();
+                    return;
+                }
+
+                var results = await _measurementService.FetchMeasurementsAsync(measurementTargets, channels, token);
+
+                LatestTimestamp = results.FirstOrDefault()?.Timestamp ?? DateTime.Now;
+
+                var lookup = results.ToLookup(r => (r.Measurement, r.Channel), r => r.Value);
+
+                foreach (var row in MatrixRows)
+                {
+                    var updated = new List<string> { row.Measurement };
+                    foreach (var channel in channels)
+                    {
+                        var value = lookup[(row.Measurement, channel.DisplayName)].FirstOrDefault() ?? "-";
+                        updated.Add(value);
+                    }
+
+                    row.SetCells(updated);
+                }
+
+                StatusMessage = $"Updated {results.Count} measurement(s).";
+            }
+            catch (OperationCanceledException)
+            {
+                // Swallow cancellation to allow graceful stop.
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = "Failed to update measurements.";
+                _logger.LogWarning(ex, "UpdateMatrixValuesAsync failed.");
+            }
+            finally
+            {
+                _isContinuousFetching = false;
+            }
         }
 
         private async Task StopContinuousAsync()
