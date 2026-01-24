@@ -242,9 +242,8 @@
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
+
                             <StackPanel Orientation="Horizontal" Grid.Column="0" VerticalAlignment="Center">
                                 <TextBlock Text="Measurements Matrix" Style="{StaticResource LabelText}" VerticalAlignment="Center" />
                                 <Border Padding="8,4"
@@ -270,19 +269,24 @@
                                                FontWeight="SemiBold" />
                                 </Border>
                             </StackPanel>
-                            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+
+                            <WrapPanel Grid.Column="1"
+                                       Orientation="Horizontal"
+                                       VerticalAlignment="Center"
+                                       HorizontalAlignment="Right"
+                                       ItemHeight="34">
                                 <Button Content="Fetch"
                                         Style="{StaticResource PrimaryButton}"
                                         Command="{Binding FetchMeasurementsCommand}"
-                                        IsEnabled="{Binding IsConnected}" />
+                                        IsEnabled="{Binding IsConnected}"
+                                        Margin="8,4,0,4" />
                                 <Button Content="Clear"
                                         Style="{StaticResource GhostButton}"
                                         Command="{Binding ClearMatrixCommand}"
-                                        Margin="8,0,0,0" />
-                            </StackPanel>
-                            <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                                        Margin="8,4,0,4" />
                                 <Button Content="Run"
-                                        Command="{Binding StartContinuousCommand}">
+                                        Command="{Binding StartContinuousCommand}"
+                                        Margin="12,4,0,4">
                                     <Button.Style>
                                         <Style TargetType="Button" BasedOn="{StaticResource SecondaryButton}">
                                             <Setter Property="IsEnabled" Value="{Binding IsConnected}" />
@@ -296,27 +300,26 @@
                                 </Button>
                                 <Button Content="Stop"
                                         Command="{Binding StopContinuousCommand}"
-                                        Margin="8,0,0,0">
+                                        Margin="8,4,0,4">
                                     <Button.Style>
                                         <Style TargetType="Button" BasedOn="{StaticResource GhostButton}">
                                             <Setter Property="IsEnabled" Value="{Binding IsContinuousRunning}" />
                                         </Style>
                                     </Button.Style>
                                 </Button>
-                            </StackPanel>
-                            <StackPanel Grid.Column="3" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
                                 <Button Content="Capture Screen"
                                         Style="{StaticResource SecondaryButton}"
                                         Command="{Binding CaptureScreenCommand}"
-                                        Margin="0,0,8,0" />
+                                        Margin="12,4,0,4" />
                                 <Button Content="Export CSV"
                                         Style="{StaticResource SecondaryButton}"
                                         Command="{Binding ExportCsvCommand}"
-                                        Margin="0,0,8,0" />
+                                        Margin="8,4,0,4" />
                                 <Button Content="Open Logs Folder"
                                         Style="{StaticResource GhostButton}"
-                                        Command="{Binding OpenLogsCommand}" />
-                            </StackPanel>
+                                        Command="{Binding OpenLogsCommand}"
+                                        Margin="8,4,0,4" />
+                            </WrapPanel>
                         </Grid>
 
                         <Border Background="#151734" BorderBrush="#2F3158" BorderThickness="1" CornerRadius="8">
