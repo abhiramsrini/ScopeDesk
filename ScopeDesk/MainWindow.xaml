@@ -222,13 +222,14 @@
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
                         <Separator Margin="0,4,0,12" />
-                        <TextBlock Text="Measurements" Style="{StaticResource LabelText}" Margin="0,0,0,8" />
-                        <ListBox ItemsSource="{Binding MeasurementOptions}" BorderThickness="0" Background="Transparent" Margin="0,4,0,0">
+                        <TextBlock Text="Measurements" Style="{StaticResource LabelText}" Margin="0,0,0,6" />
+                        <ListBox ItemsSource="{Binding MeasurementOptions}" BorderThickness="0" Background="Transparent" Margin="0,8,0,0">
                             <ListBox.ItemTemplate>
                                 <DataTemplate>
                                     <CheckBox Content="{Binding DisplayName}"
                                               IsChecked="{Binding IsSelected, Mode=TwoWay}"
-                                              Style="{StaticResource ListCheckBox}" />
+                                              Style="{StaticResource ListCheckBox}"
+                                              Margin="0,4,0,4" />
                                 </DataTemplate>
                             </ListBox.ItemTemplate>
                         </ListBox>
