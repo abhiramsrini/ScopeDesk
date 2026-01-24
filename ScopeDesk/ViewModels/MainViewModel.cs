@@ -10,6 +10,7 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace ScopeDesk.ViewModels
@@ -25,13 +26,17 @@ namespace ScopeDesk.ViewModels
         private string _ipAddress = "192.168.0.100";
         private string _visaResource = string.Empty;
         private ConnectionType _connectionType = ConnectionType.TcpIp;
+        private int _continuousIntervalMs = 500;
         private string _scpiCommand = string.Empty;
         private string _scpiResponse = string.Empty;
         private bool _isConnected;
+        private bool _isContinuousRunning;
+        private bool _isFetching;
         private string _statusMessage = "Disconnected";
         private string _footerMessage = string.Empty;
         private DateTime? _latestTimestamp;
         private string _serialNumber = "-";
+        private CancellationTokenSource? _continuousCts;
 
         public MainViewModel(
             ScopeConnectionService connectionService,
@@ -51,6 +56,9 @@ namespace ScopeDesk.ViewModels
             ConnectionType = Enum.TryParse(_configuration["Connection:DefaultInterface"], true, out ConnectionType parsedType)
                 ? parsedType
                 : ConnectionType.TcpIp;
+            _continuousIntervalMs = int.TryParse(_configuration["Connection:ContinuousIntervalMs"], out var interval)
+                ? Math.Max(interval, 100)
+                : 500;
             ChannelOptions = new ObservableCollection<SelectableChannelOption>(BuildChannelOptions());
             MeasurementOptions = new ObservableCollection<SelectableMeasurementOption>(BuildMeasurementOptions());
 
@@ -65,6 +73,8 @@ namespace ScopeDesk.ViewModels
             SendScpiCommand = new AsyncRelayCommand(SendScpiCommandAsync, () => IsConnected && !string.IsNullOrWhiteSpace(ScpiCommand));
             OpenLogsCommand = new RelayCommand(OpenLogsFolder);
             ClearMatrixCommand = new RelayCommand(ClearMatrix);
+            StartContinuousCommand = new AsyncRelayCommand(StartContinuousAsync, () => IsConnected && !IsContinuousRunning);
+            StopContinuousCommand = new AsyncRelayCommand(StopContinuousAsync, () => IsContinuousRunning);
         }
 
         public ObservableCollection<SelectableChannelOption> ChannelOptions { get; }
@@ -120,6 +130,8 @@ namespace ScopeDesk.ViewModels
                     DisconnectCommand.NotifyCanExecuteChanged();
                     FetchMeasurementsCommand.NotifyCanExecuteChanged();
                     SendScpiCommand.NotifyCanExecuteChanged();
+                    StartContinuousCommand.NotifyCanExecuteChanged();
+                    StopContinuousCommand.NotifyCanExecuteChanged();
                 }
             }
         }
@@ -150,6 +162,22 @@ namespace ScopeDesk.ViewModels
             private set => SetProperty(ref _serialNumber, value);
         }
 
+        public bool IsContinuousRunning
+        {
+            get => _isContinuousRunning;
+            private set
+            {
+                if (SetProperty(ref _isContinuousRunning, value))
+                {
+                    StartContinuousCommand.NotifyCanExecuteChanged();
+                    StopContinuousCommand.NotifyCanExecuteChanged();
+                    OnPropertyChanged(nameof(ContinuousStatusText));
+                }
+            }
+        }
+
+        public string ContinuousStatusText => IsContinuousRunning ? "Running..." : "Idle";
+
         public IReadOnlyList<string> MatrixHeaders => new[] { "Measurement" }.Concat(MatrixChannels).ToList();
         public int MatrixColumnCount => MatrixChannels.Count + 1;
 
@@ -159,6 +187,8 @@ namespace ScopeDesk.ViewModels
         public IAsyncRelayCommand SendScpiCommand { get; }
         public IRelayCommand OpenLogsCommand { get; }
         public IRelayCommand ClearMatrixCommand { get; }
+        public IAsyncRelayCommand StartContinuousCommand { get; }
+        public IAsyncRelayCommand StopContinuousCommand { get; }
 
         private IEnumerable<SelectableChannelOption> BuildChannelOptions()
         {
@@ -215,6 +245,7 @@ namespace ScopeDesk.ViewModels
         private async Task DisconnectAsync()
         {
             StatusMessage = "Disconnecting...";
+            await StopContinuousAsync();
             await _connectionService.DisconnectAsync();
             IsConnected = false;
             StatusMessage = "Disconnected";
@@ -240,8 +271,14 @@ namespace ScopeDesk.ViewModels
 
         private async Task FetchMeasurementsAsync()
         {
+            if (_isFetching)
+            {
+                return;
+            }
+
             try
             {
+                _isFetching = true;
                 var measurementTargets = GetSelectedMeasurements().ToList();
                 var channels = GetSelectedChannels().ToList();
 
@@ -288,6 +325,10 @@ namespace ScopeDesk.ViewModels
             {
                 StatusMessage = "Failed to fetch measurements.";
                 _logger.LogError(ex, "Error fetching measurements.");
+            }
+            finally
+            {
+                _isFetching = false;
             }
         }
 
@@ -368,6 +409,71 @@ namespace ScopeDesk.ViewModels
         {
             OnPropertyChanged(nameof(MatrixHeaders));
             OnPropertyChanged(nameof(MatrixColumnCount));
+        }
+
+        private async Task StartContinuousAsync()
+        {
+            if (IsContinuousRunning || !IsConnected)
+            {
+                return;
+            }
+
+            _continuousCts = new CancellationTokenSource();
+            IsContinuousRunning = true;
+            StatusMessage = $"Continuous run started (every {_continuousIntervalMs} ms).";
+
+            await RunContinuousAsync(_continuousCts.Token);
+        }
+
+        private async Task RunContinuousAsync(CancellationToken token)
+        {
+            var cts = _continuousCts;
+
+            while (!token.IsCancellationRequested)
+            {
+                try
+                {
+                    await FetchMeasurementsAsync();
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Continuous fetch iteration failed.");
+                }
+
+                try
+                {
+                    await Task.Delay(_continuousIntervalMs, token);
+                }
+                catch (TaskCanceledException)
+                {
+                    break;
+                }
+            }
+
+            IsContinuousRunning = false;
+            StatusMessage = "Continuous run stopped.";
+            cts?.Dispose();
+            _continuousCts = null;
+        }
+
+        private async Task StopContinuousAsync()
+        {
+            if (_continuousCts == null)
+            {
+                return;
+            }
+
+            try
+            {
+                _continuousCts.Cancel();
+            }
+            catch (ObjectDisposedException)
+            {
+            }
+
+            IsContinuousRunning = false;
+            StatusMessage = "Continuous run stopped.";
+            await Task.CompletedTask;
         }
     }
 }

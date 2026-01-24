@@ -22,12 +22,13 @@ ScopeDesk is a .NET 7 WPF client for LeCroy oscilloscopes. It connects over TCPI
 - Default interface: `TcpIp` (options: `TcpIp`, `UsbTmc`)
 - Default IP: `192.168.0.100` (`DefaultPort` stored but not used in the TCPIP connection string)
 - Default USBTMC VISA resource example: `USB0::0x05FF::0x1023::SERIAL::INSTR`
+- Continuous fetch interval: `500` ms
 - Logging: `%LocalAppData%/ScopeDesk/logs/scope.log`, ~5 MB per file, retain 10, roll on size limit
 
 ## Key Components
 - `Services/ScopeConnectionService`: ActiveDSO connect/disconnect (`MakeConnection("TCPIP:<addr>")` or `"USBTMC:<visa>"`), `HasScope` flag for stub awareness, SCPI helper (writes command, `CHDR OFF`, `?`, reads response), serial fetch via VBS (`app.Instrument.SerialNumber`), handles controls lacking explicit `Disconnect`
 - `Services/MeasurementService`: VBS measurement calls mapped to P1–P8 slots (Amplitude, Mean, Rise, Fall, PeakToPeak, Frequency, Width, Period); iterates selected channels/measurements and returns timestamped results; generates stub values if COM is missing
-- `ViewModels/MainViewModel`: connection state and header status message, serial number display, checkbox-based channel/measurement selection (all preselected; falls back to all if none checked), fetch builds a measurement matrix (measurements as rows, channels as columns) with `LatestTimestamp`, clear matrix command, SCPI command/response binding, logs folder opener; default IP and log path pulled from config
+- `ViewModels/MainViewModel`: connection state and header status message, serial number display, checkbox-based channel/measurement selection (all preselected; falls back to all if none checked), fetch builds a measurement matrix (measurements as rows, channels as columns) with `LatestTimestamp`, clear matrix command, SCPI command/response binding, logs folder opener; default IP and log path pulled from config; optional continuous run loop with interval from config
 - `MainWindow.xaml`: UI with branded header/status, connection + SCPI panels, channel/measurement checklists, matrix grid with timestamp and fetch/clear buttons, logs-folder shortcut, footer link to Primeasure
 
 ## Expected Usage

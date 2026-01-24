@@ -233,11 +233,12 @@
                     </StackPanel>
                 </Border>
 
-                <Border Grid.Row="1" Grid.Column="1" Style="{StaticResource CardBorder}" Padding="20">
+                        <Border Grid.Row="1" Grid.Column="1" Style="{StaticResource CardBorder}" Padding="20">
                     <StackPanel>
                         <Grid Margin="0,0,0,12">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
@@ -254,6 +255,17 @@
                                                Foreground="{DynamicResource ForegroundBrush}"
                                                FontWeight="SemiBold" />
                                 </Border>
+                                <Border Padding="8,4"
+                                        Background="#221F3F"
+                                        BorderBrush="#2F3158"
+                                        BorderThickness="1"
+                                        CornerRadius="8"
+                                        VerticalAlignment="Center"
+                                        Margin="8,0,0,0">
+                                    <TextBlock Text="{Binding ContinuousStatusText}"
+                                               Foreground="{DynamicResource TertiaryBrush}"
+                                               FontWeight="SemiBold" />
+                                </Border>
                             </StackPanel>
                             <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
                                 <Button Content="Fetch"
@@ -265,7 +277,31 @@
                                         Command="{Binding ClearMatrixCommand}"
                                         Margin="8,0,0,0" />
                             </StackPanel>
-                            <Button Grid.Column="2"
+                            <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                                <Button Content="Run"
+                                        Command="{Binding StartContinuousCommand}">
+                                    <Button.Style>
+                                        <Style TargetType="Button" BasedOn="{StaticResource SecondaryButton}">
+                                            <Setter Property="IsEnabled" Value="{Binding IsConnected}" />
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsContinuousRunning}" Value="True">
+                                                    <Setter Property="IsEnabled" Value="False" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Button.Style>
+                                </Button>
+                                <Button Content="Stop"
+                                        Command="{Binding StopContinuousCommand}"
+                                        Margin="8,0,0,0">
+                                    <Button.Style>
+                                        <Style TargetType="Button" BasedOn="{StaticResource GhostButton}">
+                                            <Setter Property="IsEnabled" Value="{Binding IsContinuousRunning}" />
+                                        </Style>
+                                    </Button.Style>
+                                </Button>
+                            </StackPanel>
+                            <Button Grid.Column="3"
                                     Content="Open Logs Folder"
                                     Style="{StaticResource GhostButton}"
                                     Command="{Binding OpenLogsCommand}" />
