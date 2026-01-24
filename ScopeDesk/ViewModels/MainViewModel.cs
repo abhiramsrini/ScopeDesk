@@ -34,6 +34,7 @@ namespace ScopeDesk.ViewModels
         private bool _isConnected;
         private bool _isContinuousRunning;
         private bool _isFetching;
+        private bool _isBusy;
         private string _statusMessage = "Disconnected";
         private string _footerMessage = string.Empty;
         private DateTime? _latestTimestamp;
@@ -71,11 +72,11 @@ namespace ScopeDesk.ViewModels
 
             ConnectCommand = new AsyncRelayCommand(ConnectAsync, () => !IsConnected);
             DisconnectCommand = new AsyncRelayCommand(DisconnectAsync, () => IsConnected);
-            FetchMeasurementsCommand = new AsyncRelayCommand(FetchMeasurementsAsync, () => IsConnected);
+            FetchMeasurementsCommand = new AsyncRelayCommand(FetchMeasurementsAsync, () => IsConnected && !_isBusy && !IsContinuousRunning);
             SendScpiCommand = new AsyncRelayCommand(SendScpiCommandAsync, () => IsConnected && !string.IsNullOrWhiteSpace(ScpiCommand));
             OpenLogsCommand = new RelayCommand(OpenLogsFolder);
             ClearMatrixCommand = new RelayCommand(ClearMatrix);
-            StartContinuousCommand = new AsyncRelayCommand(StartContinuousAsync, () => IsConnected && !IsContinuousRunning);
+            StartContinuousCommand = new AsyncRelayCommand(StartContinuousAsync, () => IsConnected && !IsContinuousRunning && !_isBusy);
             StopContinuousCommand = new AsyncRelayCommand(StopContinuousAsync, () => IsContinuousRunning);
             ExportCsvCommand = new RelayCommand(ExportCsv, CanExportCsv);
             CaptureScreenCommand = new AsyncRelayCommand(CaptureScreenAsync, () => IsConnected);
@@ -278,7 +279,7 @@ namespace ScopeDesk.ViewModels
 
         private async Task FetchMeasurementsAsync()
         {
-            if (_isFetching)
+            if (_isFetching || _isBusy)
             {
                 return;
             }
@@ -286,6 +287,10 @@ namespace ScopeDesk.ViewModels
             try
             {
                 _isFetching = true;
+                _isBusy = true;
+                FetchMeasurementsCommand.NotifyCanExecuteChanged();
+                StartContinuousCommand.NotifyCanExecuteChanged();
+
                 var measurementTargets = GetSelectedMeasurements().ToList();
                 var channels = GetSelectedChannels().ToList();
 
@@ -336,7 +341,10 @@ namespace ScopeDesk.ViewModels
             finally
             {
                 _isFetching = false;
+                _isBusy = false;
                 ExportCsvCommand.NotifyCanExecuteChanged();
+                FetchMeasurementsCommand.NotifyCanExecuteChanged();
+                StartContinuousCommand.NotifyCanExecuteChanged();
             }
         }
 
@@ -428,6 +436,10 @@ namespace ScopeDesk.ViewModels
             }
 
             _continuousCts = new CancellationTokenSource();
+            _isBusy = true;
+            FetchMeasurementsCommand.NotifyCanExecuteChanged();
+            StartContinuousCommand.NotifyCanExecuteChanged();
+            StopContinuousCommand.NotifyCanExecuteChanged();
             IsContinuousRunning = true;
             StatusMessage = $"Continuous run started (every {_continuousIntervalMs} ms).";
 
@@ -460,9 +472,13 @@ namespace ScopeDesk.ViewModels
             }
 
             IsContinuousRunning = false;
+            _isBusy = false;
             StatusMessage = "Continuous run stopped.";
             cts?.Dispose();
             _continuousCts = null;
+            FetchMeasurementsCommand.NotifyCanExecuteChanged();
+            StartContinuousCommand.NotifyCanExecuteChanged();
+            StopContinuousCommand.NotifyCanExecuteChanged();
         }
 
         private async Task StopContinuousAsync()
@@ -482,6 +498,10 @@ namespace ScopeDesk.ViewModels
 
             IsContinuousRunning = false;
             StatusMessage = "Continuous run stopped.";
+            _isBusy = false;
+            FetchMeasurementsCommand.NotifyCanExecuteChanged();
+            StartContinuousCommand.NotifyCanExecuteChanged();
+            StopContinuousCommand.NotifyCanExecuteChanged();
             await Task.CompletedTask;
         }
 
