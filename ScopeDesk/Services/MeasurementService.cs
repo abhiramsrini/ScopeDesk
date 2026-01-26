@@ -22,7 +22,14 @@ namespace ScopeDesk.Services
             { "Peak-to-Peak", ("PeakToPeak", 5) },
             { "Frequency", ("Frequency", 6) },
             { "Width", ("Width", 7) },
-            { "Period", ("Period", 8) }
+            { "Period", ("Period", 8) },
+            { "Base", ("Base", 1) },
+            { "Phase", ("Phase", 2) },
+            { "DutyCycle", ("DutyCycle", 3) },
+            { "Delay", ("Delay", 4) },
+            { "Skew", ("Skew", 5) },
+            { "Maximum", ("Maximum", 6) },
+            { "Minimum", ("Minimum", 7) }
         };
 
         public MeasurementService(ScopeConnectionService connectionService, ILogger<MeasurementService> logger)
@@ -120,11 +127,17 @@ namespace ScopeDesk.Services
                 "mean" => $"{baseValue / 2:F3} V",
                 "rise time" => $"{Math.Max(baseValue / 1000, 0.0001):F6} s",
                 "fall time" => $"{Math.Max(baseValue / 1000, 0.0001):F6} s",
-                "duty cycle" => $"{Math.Min(baseValue * 10, 100):F2} %",
+                "dutycycle" => $"{Math.Min(baseValue * 10, 100):F2} %",
                 "rms" => $"{baseValue / 3:F3} V",
                 "peak-to-peak" => $"{baseValue * 1.2:F3} V",
                 "max" => $"{baseValue * 1.5:F3} V",
                 "min" => $"{baseValue * 0.5:F3} V",
+                "base" => $"{baseValue * 0.8:F3} V",
+                "phase" => $"{Math.Min(baseValue * 36, 360):F2} deg",
+                "delay" => $"{Math.Max(baseValue / 1000, 0.0001):F6} s",
+                "skew" => $"{Math.Max(baseValue / 1000, 0.0001):F6} s",
+                "maximum" => $"{baseValue * 1.5:F3} V",
+                "minimum" => $"{baseValue * 0.5:F3} V",
                 _ => $"{baseValue:F3}"
             };
         }

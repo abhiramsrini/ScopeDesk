@@ -244,7 +244,14 @@ namespace ScopeDesk.ViewModels
                 new SelectableMeasurementOption { Id = "Fall Time", DisplayName = "Fall Time", IsSelected = true },
                 new SelectableMeasurementOption { Id = "Peak-to-Peak", DisplayName = "Peak-to-Peak", IsSelected = true },
                 new SelectableMeasurementOption { Id = "Width", DisplayName = "Width", IsSelected = true },
-                new SelectableMeasurementOption { Id = "Period", DisplayName = "Period", IsSelected = true }
+                new SelectableMeasurementOption { Id = "Period", DisplayName = "Period", IsSelected = true },
+                new SelectableMeasurementOption { Id = "Base", DisplayName = "Base", IsSelected = false },
+                new SelectableMeasurementOption { Id = "Phase", DisplayName = "Phase", IsSelected = false },
+                new SelectableMeasurementOption { Id = "DutyCycle", DisplayName = "DutyCycle", IsSelected = false },
+                new SelectableMeasurementOption { Id = "Delay", DisplayName = "Delay", IsSelected = false },
+                new SelectableMeasurementOption { Id = "Skew", DisplayName = "Skew", IsSelected = false },
+                new SelectableMeasurementOption { Id = "Maximum", DisplayName = "Maximum", IsSelected = false },
+                new SelectableMeasurementOption { Id = "Minimum", DisplayName = "Minimum", IsSelected = false }
             };
 
             return items;
