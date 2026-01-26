@@ -69,6 +69,15 @@ namespace ScopeDesk
                     }
                 }
 
+                try
+                {
+                    Host.StopAsync().GetAwaiter().GetResult();
+                }
+                catch
+                {
+                    // Swallow stop errors during shutdown.
+                }
+
                 Host.Dispose();
             }
 

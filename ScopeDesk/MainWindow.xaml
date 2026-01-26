@@ -8,7 +8,8 @@
         Icon="Resources/images/logo.ico"
         Height="620"
         Width="980"
-        Background="{DynamicResource SurfaceBrush}">
+        Background="{DynamicResource SurfaceBrush}"
+        Closing="MainWindow_Closing">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="70" />

@@ -41,6 +41,7 @@ namespace ScopeDesk.ViewModels
         private string _serialNumber = "-";
         private CancellationTokenSource? _continuousCts;
         private bool _isContinuousFetching;
+        private bool _isShuttingDown;
 
         public MainViewModel(
             ScopeConnectionService connectionService,
@@ -198,6 +199,31 @@ namespace ScopeDesk.ViewModels
         public IAsyncRelayCommand StopContinuousCommand { get; }
         public IRelayCommand ExportCsvCommand { get; }
         public IAsyncRelayCommand CaptureScreenCommand { get; }
+
+        public async Task ShutdownAsync()
+        {
+            if (_isShuttingDown)
+            {
+                return;
+            }
+
+            _isShuttingDown = true;
+
+            try
+            {
+                StatusMessage = "Closing connection...";
+                _logger.LogInformation("Shutdown started: stopping continuous mode and disconnecting.");
+                await StopContinuousAsync();
+                await _connectionService.DisconnectAsync();
+                IsConnected = false;
+                StatusMessage = "Disconnected";
+                _logger.LogInformation("Shutdown cleanup completed.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Shutdown cleanup failed.");
+            }
+        }
 
         private IEnumerable<SelectableChannelOption> BuildChannelOptions()
         {
