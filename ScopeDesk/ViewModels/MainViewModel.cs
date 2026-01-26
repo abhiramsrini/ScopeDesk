@@ -304,7 +304,12 @@ namespace ScopeDesk.ViewModels
             }
         }
 
-        private async Task FetchMeasurementsAsync(bool allowBusy = false)
+        private Task FetchMeasurementsAsync()
+        {
+            return FetchMeasurementsInternalAsync(allowBusy: false);
+        }
+
+        private async Task FetchMeasurementsInternalAsync(bool allowBusy)
         {
             if (_isFetching || (_isBusy && !allowBusy))
             {
@@ -526,7 +531,7 @@ namespace ScopeDesk.ViewModels
                 // If the structure is empty (e.g., first run), build it once.
                 if (!MatrixRows.Any() || MatrixChannels.Count == 0)
                 {
-                    await FetchMeasurementsAsync(allowBusy: true);
+                    await FetchMeasurementsInternalAsync(allowBusy: true);
                     return;
                 }
 
